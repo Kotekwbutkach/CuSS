@@ -7,15 +7,18 @@ from validation import Validate
 
 class ParticlesState:
     number_of_particles: int
+    number_of_dimensions: int
     _particles: np.array
 
     def __init__(self,
                  number_of_particles: int,
+                 number_of_dimensions: int,
                  particles: Union[None, np.array] = None):
         self.number_of_particles = number_of_particles
         if particles is None:
-            self._particles = np.zeros((number_of_particles, 3))
+            self._particles = np.zeros((number_of_particles, 3 * number_of_dimensions))
         else:
+            Validate(particles).is_of_shape((number_of_particles, 3 * number_of_dimensions))
             self._particles = particles
 
     def at_particle(self, n: int):

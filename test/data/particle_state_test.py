@@ -5,10 +5,15 @@ import numpy as np
 from data import ParticlesState
 
 number_of_particles = 5
+number_of_dimensions = 2
 
 particle_state_args = {
     "number_of_particles": number_of_particles,
-    "particles": np.array([[x, x, 0] for x in range(number_of_particles)])}
+    "number_of_dimensions": number_of_dimensions,
+    "particles": np.array([
+        [x] * number_of_dimensions +
+        [x] * number_of_dimensions +
+        [0] * number_of_dimensions for x in range(number_of_particles)])}
 
 
 class ParticlesStateTest(unittest.TestCase):
@@ -26,11 +31,11 @@ class ParticlesStateTest(unittest.TestCase):
 
     def test_at_particle_raises_expected_error(self):
         with self.assertRaises(TypeError):
-            particle = self.particles_state.at_particle("foo")
+            _ = self.particles_state.at_particle("foo")
         with self.assertRaises(ValueError):
-            particle = self.particles_state.at_particle(number_of_particles)
+            _ = self.particles_state.at_particle(number_of_particles)
         with self.assertRaises(ValueError):
-            particle = self.particles_state.at_particle(-1)
+            _ = self.particles_state.at_particle(-1)
 
     def test_particles_returns_expected_data(self):
         particle_0 = list(self.particles_state.particles())[0]
@@ -42,9 +47,9 @@ class ParticlesStateTest(unittest.TestCase):
 
     def test_particles_raises_expected_error(self):
         with self.assertRaises(Exception):
-            particle = list(self.particles_state.particles())["foo"]
+            _ = list(self.particles_state.particles())["foo"]
         with self.assertRaises(Exception):
-            particle = list(self.particles_state.particles())[number_of_particles]
+            _ = list(self.particles_state.particles())[number_of_particles]
 
 
 if __name__ == '__main__':

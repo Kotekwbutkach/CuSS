@@ -1,4 +1,6 @@
-from typing import Union
+from typing import Union, Tuple
+
+import numpy as np
 
 
 class Validate:
@@ -39,3 +41,8 @@ class Validate:
         if isinstance(self.value, int) and self.value >= int(checked_value):
             return
         raise ValueError(f"Value {self.value} should not be less than {checked_value}")
+
+    def is_of_shape(self, checked_shape: Tuple[int, ...]):
+        if isinstance(self.value, np.ndarray) and self.value.shape == checked_shape:
+            return
+        raise ValueError(f"Array {self.value} is not of expected shape {checked_shape}")

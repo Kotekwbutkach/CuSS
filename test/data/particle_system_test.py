@@ -5,12 +5,17 @@ import numpy as np
 from data import ParticlesSystem
 
 number_of_particles = 5
+number_of_dimensions = 2
 step_limit = 10
 
 particle_system_args = {
     "number_of_particles": number_of_particles,
+    "number_of_dimensions": number_of_dimensions,
     "step_limit": step_limit,
-    "particles": np.array([[[x+10*y, x+10*y, 0] for x in range(step_limit)] for y in range(number_of_particles)])}
+    "particles": np.array([[
+        [x+10*y] * number_of_dimensions +
+        [x+10*y] * number_of_dimensions +
+        [0] * number_of_dimensions for x in range(step_limit)] for y in range(number_of_particles)])}
 
 
 class ParticlesSystemTest(unittest.TestCase):
@@ -38,11 +43,11 @@ class ParticlesSystemTest(unittest.TestCase):
 
     def test_at_time_raises_expected_error(self):
         with self.assertRaises(TypeError):
-            particle = self.particles_system.at_step("foo")
+            _ = self.particles_system.at_step("foo")
         with self.assertRaises(ValueError):
-            particle = self.particles_system.at_step(step_limit)
+            _ = self.particles_system.at_step(step_limit)
         with self.assertRaises(ValueError):
-            particle = self.particles_system.at_step(-1)
+            _ = self.particles_system.at_step(-1)
 
     def test_steps_returns_expected_data(self):
         state_0 = list(self.particles_system.steps())[0]
@@ -60,14 +65,14 @@ class ParticlesSystemTest(unittest.TestCase):
             state_t.at_particle(number_of_particles-1),
             particle_system_args["particles"][number_of_particles-1][step_limit-1])
         for _s, particles_state in enumerate(self.particles_system.steps()):
-            for _n, particle in enumerate(particles_state.particles()):
+            for _n, particle in enumerate(particles_state._particles()):
                 np.testing.assert_array_equal(particle, particle_system_args["particles"][_n][_s])
 
     def test_steps_raises_expected_error(self):
         with self.assertRaises(Exception):
-            particle = list(self.particles_system.steps())["foo"]
+            _ = list(self.particles_system.steps())["foo"]
         with self.assertRaises(Exception):
-            particle = list(self.particles_system.steps())[step_limit]
+            _ = list(self.particles_system.steps())[step_limit]
 
 
 if __name__ == '__main__':
