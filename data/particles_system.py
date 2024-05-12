@@ -32,6 +32,17 @@ class ParticlesSystem:
              .is_of_shape((number_of_particles, step_limit, 3 * number_of_dimensions)))
             self._particles = particles
 
+    def set_step(self, step: int, data: np.ndarray):
+        (Validate(step)
+         .is_type(int)
+         .is_greater_than_or_equal(0)
+         .is_less_than(self.step_limit))
+        (Validate(data)
+         .is_type(np.ndarray)
+         .is_of_shape((self.number_of_particles, self.step_limit, 3 * self.number_of_dimensions)))
+
+        self._particles[:, step, :] = np.array(data)
+
     def at_step(self, step: int):
         (Validate(step)
          .is_type(int)
