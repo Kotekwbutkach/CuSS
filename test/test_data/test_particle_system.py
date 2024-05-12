@@ -18,7 +18,7 @@ particle_system_args = {
         [0] * number_of_dimensions for x in range(step_limit)] for y in range(number_of_particles)])}
 
 
-class ParticlesSystemTest(unittest.TestCase):
+class TestParticlesSystem(unittest.TestCase):
     particles_system: ParticlesSystem
 
     @classmethod
@@ -65,7 +65,7 @@ class ParticlesSystemTest(unittest.TestCase):
             state_t.at_particle(number_of_particles-1),
             particle_system_args["particles"][number_of_particles-1][step_limit-1])
         for _s, particles_state in enumerate(self.particles_system.steps()):
-            for _n, particle in enumerate(particles_state._particles()):
+            for _n, particle in enumerate(particles_state.particles()):
                 np.testing.assert_array_equal(particle, particle_system_args["particles"][_n][_s])
 
     def test_steps_raises_expected_error(self):

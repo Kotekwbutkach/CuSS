@@ -26,11 +26,11 @@ class ParticlesState:
         Validate(n).is_less_than(self.number_of_particles)
         Validate(n).is_greater_than_or_equal(0)
 
-        return self._particles[n, :]
+        return np.array(self._particles[n, :])
 
     def particles(self):
         _n = 0
 
         while _n < self.number_of_particles:
-            yield self._particles[_n, :]
+            yield np.array(self._particles[_n, :])
             _n += 1

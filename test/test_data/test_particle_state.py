@@ -16,7 +16,7 @@ particle_state_args = {
         [0] * number_of_dimensions for x in range(number_of_particles)])}
 
 
-class ParticlesStateTest(unittest.TestCase):
+class TestParticlesState(unittest.TestCase):
     particles_state: ParticlesState
 
     @classmethod
