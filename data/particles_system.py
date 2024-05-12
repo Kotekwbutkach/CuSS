@@ -10,28 +10,33 @@ class ParticlesSystem:
     number_of_particles: int
     number_of_dimensions: int
     step_limit: int
-    current_step: int
     _particles: np.array
 
     def __init__(self,
                  number_of_particles: int,
                  number_of_dimensions: int,
                  step_limit: int,
-                 particles: Union[None, np.array] = None):
+                 particles: Union[None, np.ndarray] = None):
+        Validate(number_of_particles).is_type(int).is_greater_than_or_equal(1)
+        Validate(number_of_dimensions).is_type(int).is_greater_than_or_equal(1)
+        Validate(step_limit).is_type(int).is_greater_than_or_equal(1)
+
         self.number_of_particles = number_of_particles
         self.number_of_dimensions = number_of_dimensions
         self.step_limit = step_limit
-        self.current_step = 0
         if particles is None:
             self._particles = np.zeros((number_of_particles, step_limit, 3 * number_of_dimensions))
         else:
-            Validate(particles).is_of_shape((number_of_particles, step_limit, 3 * number_of_dimensions))
+            (Validate(particles)
+             .is_type(np.ndarray)
+             .is_of_shape((number_of_particles, step_limit, 3 * number_of_dimensions)))
             self._particles = particles
 
     def at_step(self, step: int):
-        Validate(step).is_type(int)
-        Validate(step).is_less_than(self.step_limit)
-        Validate(step).is_greater_than_or_equal(0)
+        (Validate(step)
+         .is_type(int)
+         .is_less_than(self.step_limit)
+         .is_greater_than_or_equal(0))
 
         return ParticlesState(self.number_of_particles, self.number_of_dimensions, self._particles[:, step, :])
 
