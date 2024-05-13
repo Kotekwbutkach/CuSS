@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Iterable, Tuple
 
 import numpy as np
 
@@ -8,6 +8,7 @@ from validation import Validate
 class ParticlesState:
     number_of_particles: int
     number_of_dimensions: int
+    shape: Tuple[int, int]
     _particles: np.array
 
     def __init__(self,
@@ -19,15 +20,16 @@ class ParticlesState:
 
         self.number_of_particles = number_of_particles
         self.number_of_dimensions = number_of_dimensions
+        self.shape = number_of_particles, 3 * number_of_dimensions
         if particles is None:
-            self._particles = np.zeros((number_of_particles, 3 * number_of_dimensions))
+            self._particles = np.zeros(self.shape)
         else:
             (Validate(particles)
              .is_type(np.ndarray)
-             .is_of_shape((number_of_particles, 3 * number_of_dimensions)))
+             .is_of_shape(self.shape))
             self._particles = particles
 
-    def at_particle(self, n: int):
+    def at_particle(self, n: int) -> np.ndarray:
         (Validate(n)
          .is_type(int)
          .is_less_than(self.number_of_particles)
@@ -35,9 +37,17 @@ class ParticlesState:
 
         return np.array(self._particles[n, :])
 
-    def particles(self):
+    def particles_range(self) -> Iterable[np.ndarray]:
         _n = 0
 
         while _n < self.number_of_particles:
             yield np.array(self._particles[_n, :])
             _n += 1
+
+    def get_particles(self):
+        return np.array(self._particles)
+
+    def __eq__(self, other):
+        if not isinstance(other, ParticlesState):
+            return False
+        return np.all(np.equal(self._particles, other._particles))

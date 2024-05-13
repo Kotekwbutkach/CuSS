@@ -14,7 +14,9 @@ class Validate:
             return self
         raise TypeError(f"Value {self.value} is not of type {checked_type}")
 
-    def is_equal_to(self, checked_value: Union[float, int]):
+    def is_equal_to(self, checked_value: Union[float, int, Tuple[..., ...]]):
+        if isinstance(self.value, Tuple) and self.value == checked_value:
+            return self
         if isinstance(self.value, float) and self.value == float(checked_value):
             return self
         if isinstance(self.value, int) and self.value == int(checked_value):

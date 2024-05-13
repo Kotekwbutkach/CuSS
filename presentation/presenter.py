@@ -14,6 +14,6 @@ class Presenter:
         Validate(step).is_type(int)
         Validate(step).is_less_than_or_equal(self.particles_system.step_limit)
         Validate(self.particles_system.number_of_dimensions).is_equal_to(2)
-        for particle in self.particles_system.at_step(step).particles():
+        for particle in self.particles_system.at_step(step).particles_range():
             particle_position = particle[0], particle[1]
             pygame.draw.circle(surface, pygame.Color("white"), particle_position, 5)
