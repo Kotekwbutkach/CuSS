@@ -3,7 +3,7 @@ import numpy as np
 from calculation import ParticlesSystemCalculator
 from data import ParticlesSystem
 from models import ConstantAccelerationModel
-from presentation import Presenter
+from presentation import Presenter, VelocityPresenter
 
 number_of_particles = 5
 number_of_dimensions = 2
@@ -24,5 +24,5 @@ model = ConstantAccelerationModel()
 particles_system_calculator = ParticlesSystemCalculator(particles_system, model, 0.1)
 particles_system_calculator.calculate()
 
-presenter = Presenter(particles_system, 600, 800, 20)
+presenter = VelocityPresenter(particles_system, 600, 800, 20)
 presenter.present()
