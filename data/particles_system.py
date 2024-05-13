@@ -32,7 +32,7 @@ class ParticlesSystem:
             (Validate(particles)
              .is_type(np.ndarray)
              .is_of_shape(self.shape))
-            self._particles = particles
+            self._particles = np.array(particles, dtype=float)
 
     def set_step(self, step: int, particles_state: ParticlesState):
         (Validate(step)

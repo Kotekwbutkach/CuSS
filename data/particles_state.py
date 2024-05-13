@@ -10,6 +10,9 @@ class ParticlesState:
     number_of_dimensions: int
     shape: Tuple[int, int]
     _particles: np.array
+    position_indices: slice
+    velocity_indices: slice
+    acceleration_indices: slice
 
     def __init__(self,
                  number_of_particles: int,
@@ -21,13 +24,18 @@ class ParticlesState:
         self.number_of_particles = number_of_particles
         self.number_of_dimensions = number_of_dimensions
         self.shape = number_of_particles, 3 * number_of_dimensions
+
+        self.position_indices = slice(0, number_of_dimensions)
+        self.velocity_indices = slice(number_of_dimensions, 2*number_of_dimensions)
+        self.acceleration_indices = slice(2*number_of_dimensions, 3*number_of_dimensions)
+
         if particles is None:
             self._particles = np.zeros(self.shape)
         else:
             (Validate(particles)
              .is_type(np.ndarray)
              .is_of_shape(self.shape))
-            self._particles = particles
+            self._particles = np.array(particles, dtype=float)
 
     def at_particle(self, n: int) -> np.ndarray:
         (Validate(n)
@@ -35,13 +43,13 @@ class ParticlesState:
          .is_less_than(self.number_of_particles)
          .is_greater_than_or_equal(0))
 
-        return np.array(self._particles[n, :])
+        return self._particles[n, :]
 
     def particles_range(self) -> Iterable[np.ndarray]:
         _n = 0
 
         while _n < self.number_of_particles:
-            yield np.array(self._particles[_n, :])
+            yield self._particles[_n, :]
             _n += 1
 
     def get_particles(self):

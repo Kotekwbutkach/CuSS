@@ -25,6 +25,7 @@ particles_state_args = {
         [x] * number_of_dimensions +
         [0] * number_of_dimensions for x in range(number_of_particles)])}
 
+
 class TestParticlesSystem(unittest.TestCase):
     particles_system: ParticlesSystem
     particles_state: ParticlesState
