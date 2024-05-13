@@ -21,32 +21,22 @@ if __name__ == "__main__":
             [0] * number_of_dimensions for x in range(step_limit)] for y in range(number_of_particles)])}
 
     particles_system = ParticlesSystem(**particles_system_args)
-    model = ConstantAccelerationModel()
 
-    particles_system_calculator = ParticlesSystemCalculator(particles_system, model, 0.1)
-    particles_system_calculator.calculate()
+    def phi(s: float):
+        return 1/(1 + s ** 2)
 
-    presenter = VelocityPresenter(particles_system)
-    # <\setup>
+    arrphi = np.vectorize(phi)
 
-    pygame.init()
+    for _n, particle in enumerate(particles_system.at_step(0).particles_range()):
+        distance = np.std(
+            (particles_system.at_step(0).get_particles() - particle)[:, particles_system.at_step(0).position_indices])
+        velocity_difference = (
+                particles_system.at_step(0).get_particles() - particle)[:, particles_system.at_step(0).velocity_indices]
+        acceleration = np.mean(np.multiply(velocity_difference, arrphi(distance)), axis=0)
+        particle[particles_system.at_step(0).acceleration_indices] = acceleration
 
-    pygame.display.set_mode((800, 600))
-    surface = pygame.display.get_surface()
-    pygame.display.set_caption('CuSS')
-    # TODO pygame.display.set_icon()
+    # model = ConstantAccelerationModel()
+    #
+    # particles_system_calculator = ParticlesSystemCalculator(particles_system, model, 0.1)
+    # particles_system_calculator.calculate()
 
-    clock = pygame.time.Clock()
-    running = True
-
-    step = 0
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        surface.fill(pygame.Color("black"))
-        presenter._present_step(surface, step)
-        pygame.display.flip()
-        if step < particles_system.step_limit - 1:
-            step += 1
-        clock.tick(20)

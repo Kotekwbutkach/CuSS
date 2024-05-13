@@ -13,4 +13,5 @@ class VelocityPresenter(Presenter):
         pygame.draw.line(self.surface,
                          pygame.Color("red"),
                          (particle[0], particle[1]),
-                         (particle[0] + particle[2], particle[1] + particle[3]))
+                         (particle[0] + particle[2], particle[1] + particle[3]),
+                         width=3)
