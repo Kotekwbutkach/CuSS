@@ -10,6 +10,7 @@ class Presenter:
     width: int
     height: int
     fps: int
+    step: 0
     particles_system: ParticlesSystem
     surface: Surface = None
 
@@ -22,37 +23,54 @@ class Presenter:
         self.width = width
         self.height = height
         self.fps = fps
+        self.step = 0
 
     def _draw_particle(self, particle: np.ndarray):
         pygame.draw.circle(self.surface, pygame.Color("white"), (particle[0], particle[1]), 5)
 
-    def _present_step(self, step: int):
-        Validate(step).is_type(int)
-        Validate(step).is_less_than_or_equal(self.particles_system.step_limit)
+    def _draw_step(self, step: int):
+        Validate(step).is_type(int).is_less_than(self.particles_system.step_limit)
         Validate(self.particles_system.number_of_dimensions).is_equal_to(2)
         for particle in self.particles_system.at_step(step).particles_range():
             self._draw_particle(particle)
 
+    def _draw_step_text(self, step: int, font: pygame.font):
+        Validate(step).is_type(int).is_less_than(self.particles_system.step_limit)
+        step_text = font.render(f'Step {self.step + 1} of {self.particles_system.step_limit}', False, pygame.Color("white"))
+        self.surface.blit(step_text, (0, 0))
+
     def present(self):
-        if self.surface is None:
-            pygame.init()
-            pygame.display.set_mode((800, 600))
-            self.surface = pygame.display.get_surface()
-            pygame.display.set_caption('CuSS')
-            pygame_icon = pygame.image.load("cuss.png")
-            pygame.display.set_icon(pygame_icon)
+        pygame.init()
+        pygame.display.set_mode((800, 600))
+        self.surface = pygame.display.get_surface()
+        pygame.display.set_caption('CuSS')
+        pygame_icon = pygame.image.load("cuss.png")
+        pygame.display.set_icon(pygame_icon)
+
+        pygame.font.init()
+        font = pygame.font.SysFont('Arial', 20)
+
+        self.surface.fill(pygame.Color("black"))
+        self._draw_step(self.step)
+        self._draw_step_text(self.step, font)
+        pygame.display.flip()
 
         clock = pygame.time.Clock()
         running = True
+        started = False
 
-        step = 0
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            self.surface.fill(pygame.Color("black"))
-            self._present_step(step)
-            pygame.display.flip()
-            if step < self.particles_system.step_limit - 1:
-                step += 1
-            clock.tick(self.fps)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        started = True
+            if started:
+                self.surface.fill(pygame.Color("black"))
+                self._draw_step(self.step)
+                self._draw_step_text(self.step, font)
+                pygame.display.flip()
+                if self.step < self.particles_system.step_limit - 1:
+                    self.step += 1
+                clock.tick(self.fps)
