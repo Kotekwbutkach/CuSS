@@ -1,4 +1,4 @@
-from typing import Union, Iterable, Tuple
+from typing import Iterable
 
 import numpy as np
 
@@ -10,14 +10,14 @@ class ParticlesSystem:
     number_of_particles: int
     number_of_dimensions: int
     step_limit: int
-    shape: Tuple[int, int, int]
+    shape: tuple[int, int, int]
     _particles: np.array
 
     def __init__(self,
                  number_of_particles: int,
                  number_of_dimensions: int,
                  step_limit: int,
-                 particles: Union[None, np.ndarray] = None):
+                 particles: np.ndarray | None = None):
         Validate(number_of_particles).is_type(int).is_greater_than_or_equal(1)
         Validate(number_of_dimensions).is_type(int).is_greater_than_or_equal(1)
         Validate(step_limit).is_type(int).is_greater_than_or_equal(1)

@@ -1,4 +1,4 @@
-from typing import Union, Iterable, Tuple
+from typing import Iterable
 
 import numpy as np
 
@@ -8,7 +8,7 @@ from validation import Validate
 class ParticlesState:
     number_of_particles: int
     number_of_dimensions: int
-    shape: Tuple[int, int]
+    shape: tuple[int, int]
     _particles: np.array
     position_indices: slice
     velocity_indices: slice
@@ -17,7 +17,7 @@ class ParticlesState:
     def __init__(self,
                  number_of_particles: int,
                  number_of_dimensions: int,
-                 particles: Union[None, np.array] = None):
+                 particles: np.ndarray | None = None):
         Validate(number_of_particles).is_type(int).is_greater_than_or_equal(1)
         Validate(number_of_dimensions).is_type(int).is_greater_than_or_equal(1)
 
