@@ -20,14 +20,14 @@ class Presenter:
     particles_system: ParticlesSystem
     surface: Surface = None
 
-    bounds: [tuple[np.float64, ...]]
+    bounds: tuple[tuple[np.float64, np.float64]]
 
     grid_lines: list[tuple[tuple[int, int], tuple[int, int]]]
 
     _should_draw_velocity: bool
     _should_draw_grid: bool
 
-    data_to_view_transform: Callable[[tuple[np.float64, ...]], tuple[float, ...]]
+    data_to_view_transform: Callable[[tuple[np.float64, np.float64]], tuple[float, float]]
 
     def __init__(self,
                  particles_system: ParticlesSystem,
@@ -36,7 +36,6 @@ class Presenter:
                  fps: int = 20,
                  should_draw_velocity: bool = True,
                  should_draw_grid: bool = True,
-                 should_adjust_bounds: bool = True
                  ):
         self.particles_system = particles_system
         self.width = width
@@ -47,12 +46,18 @@ class Presenter:
         self._should_draw_velocity = should_draw_velocity
         self._should_draw_grid = should_draw_grid
 
-        if not should_adjust_bounds:
-            self.bounds = np.array([[0, self.width], [0, self.height]])
-            self.data_to_view_transform = lambda x: x
-        else:
-            self.bounds = self.particles_system.get_bounds()
-            self.data_to_view_transform = self.get_data_to_view_transform()
+        bounds = self.particles_system.get_bounds()
+        midpoint = ((bounds[0][1] + bounds[0][0])/2, (bounds[1][1] + bounds[1][0])/2)
+        bounds_scale = max([
+            (bounds[0][1] - bounds[0][0])/self.width,
+            (bounds[1][1] - bounds[1][0])/self.height])
+        self.bounds = (
+            (midpoint[0] - (width * bounds_scale / 2), midpoint[0] + (width * bounds_scale / 2)),
+            (midpoint[1] - (height * bounds_scale / 2), midpoint[1] + (height * bounds_scale / 2))
+        )
+
+        self.data_to_view_transform = self.get_data_to_view_transform()
+
         if should_draw_grid:
             gridpoints_x = np.arange(
                 math.ceil(self.bounds[0][0]/self.GRID_GRANULARITY) * self.GRID_GRANULARITY,
@@ -72,7 +77,7 @@ class Presenter:
         def _transform(x: tuple[np.float64, ...]) -> tuple[float, ...]:
             result = [np.interp(
                 x[i],
-                self.bounds[i, :],
+                self.bounds[i],
                 (self.ADJUST_BOUNDS_MARGIN, (
                     self.width - self.ADJUST_BOUNDS_MARGIN,
                     self.height - self.ADJUST_BOUNDS_MARGIN)[i]))
