@@ -14,19 +14,36 @@ class Presenter:
     particles_system: ParticlesSystem
     surface: Surface = None
 
+    should_draw_velocity: bool
+
     def __init__(self,
                  particles_system: ParticlesSystem,
                  width: int = 800,
                  height: int = 600,
-                 fps: int = 20):
+                 fps: int = 20,
+                 should_draw_velocity: bool = True
+                 ):
         self.particles_system = particles_system
         self.width = width
         self.height = height
         self.fps = fps
         self.step = 0
+        self.should_draw_velocity = should_draw_velocity
 
     def _draw_particle(self, particle: np.ndarray):
-        pygame.draw.circle(self.surface, pygame.Color("white"), (particle[0], particle[1]), 5)
+        pygame.draw.circle(
+            self.surface,
+            pygame.Color("white"),
+            (particle[0], particle[1]),
+            5)
+
+        if self.should_draw_velocity:
+            pygame.draw.line(
+                self.surface,
+                pygame.Color("red"),
+                (particle[0], particle[1]),
+                (particle[0] + particle[2], particle[1] + particle[3]),
+                width=3)
 
     def _draw_step(self, step: int):
         Validate(step).is_type(int).is_less_than(self.particles_system.step_limit)

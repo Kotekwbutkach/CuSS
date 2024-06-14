@@ -2,8 +2,8 @@ import numpy as np
 
 from calculation import ParticlesSystemCalculator
 from data import ParticlesSystem
-from models import ConstantAccelerationModel, CuckerSmaleModel
-from presentation import Presenter, VelocityPresenter
+from models import CuckerSmaleModel
+from presentation import Presenter
 
 number_of_particles = 5
 number_of_dimensions = 2
@@ -25,5 +25,10 @@ model = CuckerSmaleModel()
 particles_system_calculator = ParticlesSystemCalculator(particles_system, model, 0.1)
 particles_system_calculator.calculate()
 
-presenter = VelocityPresenter(particles_system, 600, 800, 20)
+presenter = Presenter(
+    particles_system,
+    600,
+    800,
+    20,
+    should_draw_velocity=True)
 presenter.present()
