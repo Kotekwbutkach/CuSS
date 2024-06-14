@@ -61,3 +61,9 @@ class ParticlesSystem:
 
     def particle_data(self) -> np.ndarray:
         return self._particles.copy()
+
+    def get_bounds(self) -> np.ndarray:
+        mins = self._particles[:, :, 0:2].min(axis=(0, 1))
+        maxes = self._particles[:, :, 0:2].max(axis=(0, 1))
+        result = np.vstack((mins, maxes)).transpose()
+        return result
