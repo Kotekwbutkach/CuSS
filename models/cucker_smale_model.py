@@ -25,9 +25,7 @@ class CuckerSmaleModel(OdeModel):
                 previous_particles_state.get_particles() - particle)[
                     :,
                     previous_particles_state.velocity_indices]
-            print(np.multiply(velocity_difference, self.phi(distance)))
             acceleration = np.mean(np.multiply(velocity_difference, self.phi(distance)), axis=0)
-            print(acceleration)
             new_particles_state[_n, previous_particles_state.acceleration_indices] = acceleration
 
         return ParticlesState(
