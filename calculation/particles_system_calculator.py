@@ -25,5 +25,5 @@ class ParticlesSystemCalculator:
         self.particles_system.set_step(self.current_step, new_particle_state)
 
     def calculate(self):
-        while self.current_step < (self.particles_system.step_limit - 1):
+        while self.current_step < self.particles_system.step_limit:
             self.calculate_step()

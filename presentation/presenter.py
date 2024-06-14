@@ -46,14 +46,14 @@ class Presenter:
                 width=3)
 
     def _draw_step(self, step: int):
-        Validate(step).is_type(int).is_less_than(self.particles_system.step_limit)
+        Validate(step).is_type(int).is_less_than_or_equal(self.particles_system.step_limit)
         Validate(self.particles_system.number_of_dimensions).is_equal_to(2)
         for particle in self.particles_system.at_step(step).particles_range():
             self._draw_particle(particle)
 
     def _draw_step_text(self, step: int, font: pygame.font):
-        Validate(step).is_type(int).is_less_than(self.particles_system.step_limit)
-        step_text = font.render(f'Step {self.step + 1} of {self.particles_system.step_limit}', False, pygame.Color("white"))
+        Validate(step).is_type(int).is_less_than_or_equal(self.particles_system.step_limit)
+        step_text = font.render(f'Step {self.step} of {self.particles_system.step_limit}', False, pygame.Color("white"))
         self.surface.blit(step_text, (0, 0))
 
     def present(self):
@@ -88,6 +88,6 @@ class Presenter:
                 self._draw_step(self.step)
                 self._draw_step_text(self.step, font)
                 pygame.display.flip()
-                if self.step < self.particles_system.step_limit - 1:
+                if self.step < self.particles_system.step_limit:
                     self.step += 1
                 clock.tick(self.fps)

@@ -13,7 +13,7 @@ particles_system_args = {
     "number_of_particles": number_of_particles,
     "number_of_dimensions": number_of_dimensions,
     "step_limit": step_limit,
-    "particles": np.zeros((number_of_particles, step_limit, 3 * number_of_dimensions))}
+    "particles": np.zeros((number_of_particles, step_limit + 1, 3 * number_of_dimensions))}
 
 particles_system_args["particles"][:, 0, 0:2] = np.random.normal(scale=40, loc=200, size=10).reshape((5, 2))
 particles_system_args["particles"][:, 0, 2:4] = np.random.normal(scale=20, loc=5, size=10).reshape((5, 2))
