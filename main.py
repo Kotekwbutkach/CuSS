@@ -5,6 +5,7 @@ import numpy as np
 from calculation import ParticlesSystemCalculator
 from data import ParticlesSystem
 from models import CuckerSmaleModel
+from plotting.plotter import Plotter
 from presentation import Presenter
 
 number_of_particles = 5
