@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 from calculation import ParticlesSystemCalculator
@@ -32,3 +34,7 @@ presenter = Presenter(
     20,
     should_draw_velocity=True)
 presenter.present()
+
+plotter = Plotter(particles_system, os.path.join(os.getcwd(), 'plots', 'simulation_1'))
+plotter.plot_values()
+plotter.plot_std_dev()
