@@ -23,9 +23,9 @@ class Plotter:
         self._time_range = range(particles_system.step_limit)
         data = particles_system.particle_data()
         sup_norm_data = np.array([
-            data[:, 1:, 0:1].max(axis=2),
-            data[:, 1:, 2:3].max(axis=2),
-            data[:, 1:, 4:5].max(axis=2)])
+            data[:, 1:, 0:2].max(axis=2),
+            data[:, 1:, 2:4].max(axis=2),
+            data[:, 1:, 4:6].max(axis=2)])
         self._data = sup_norm_data
         self._std_dev_data = sup_norm_data.std(axis=1)
 
