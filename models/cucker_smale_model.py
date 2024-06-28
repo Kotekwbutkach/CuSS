@@ -9,7 +9,7 @@ from models import OdeModel
 class CuckerSmaleModel(OdeModel):
     phi: Callable[[np.ndarray], np.ndarray]
 
-    def __init__(self, phi: Callable[[float], float] = lambda s: 100/(1 + s ** 1.5)):
+    def __init__(self, phi: Callable[[float], float] = lambda s: 1/(1 + s ** 2)):
         self.phi = np.vectorize(phi)
 
     def calculate_acceleration(self, delta_t: float, previous_particles_state: ParticlesState) -> ParticlesState:
