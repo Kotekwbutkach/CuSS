@@ -1,2 +1,1 @@
-from user_interface.slider import Slider
-from user_interface.menu import Menu
+from user_interface.main_menu import MainMenu
