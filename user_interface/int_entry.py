@@ -1,7 +1,7 @@
 import tkinter as tk
 
 
-class FloatEntry(tk.Frame):
+class IntEntry(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master)
         vcmd = (self.register(self.callback))
@@ -10,7 +10,7 @@ class FloatEntry(tk.Frame):
 
     def callback(self, p):
         try:
-            float(p)
+            int(p)
             return True
         except ValueError:
             return p == '' or p == "-"

@@ -1,5 +1,6 @@
 import math
 from typing import Callable
+from pathlib import Path
 
 import numpy as np
 import pygame
@@ -176,8 +177,10 @@ class Presenter:
         pygame.display.set_mode((self.width, self.height))
         self.surface = pygame.display.get_surface()
         pygame.display.set_caption('CuSS')
-        pygame_icon = pygame.image.load("cuss.png")
-        pygame.display.set_icon(pygame_icon)
+        my_file = Path("cuss.png")
+        if my_file.is_file():
+            pygame_icon = pygame.image.load("cuss.png")
+            pygame.display.set_icon(pygame_icon)
 
         pygame.font.init()
         font = pygame.font.SysFont('Arial', 20)
