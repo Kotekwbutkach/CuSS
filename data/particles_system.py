@@ -25,7 +25,7 @@ class ParticlesSystem:
         self.number_of_particles = number_of_particles
         self.number_of_dimensions = number_of_dimensions
         self.step_limit = step_limit
-        self.shape = number_of_particles, step_limit, 3 * number_of_dimensions
+        self.shape = number_of_particles, step_limit + 1, 3 * number_of_dimensions
         if particles is None:
             self._particles = np.zeros(self.shape)
         else:
@@ -38,7 +38,7 @@ class ParticlesSystem:
         (Validate(step)
          .is_type(int)
          .is_greater_than_or_equal(0)
-         .is_less_than(self.step_limit))
+         .is_less_than_or_equal(self.step_limit))
         Validate(particles_state).is_type(ParticlesState)
         Validate(particles_state.shape).is_equal_to((self.shape[0], self.shape[2]))
 
@@ -47,7 +47,7 @@ class ParticlesSystem:
     def at_step(self, step: int) -> ParticlesState:
         (Validate(step)
          .is_type(int)
-         .is_less_than(self.step_limit)
+         .is_less_than_or_equal(self.step_limit)
          .is_greater_than_or_equal(0))
 
         return ParticlesState(self.number_of_particles, self.number_of_dimensions, self._particles[:, step, :])
@@ -55,6 +55,15 @@ class ParticlesSystem:
     def steps_range(self) -> Iterable[ParticlesState]:
         _s = 0
 
-        while _s < self.step_limit:
+        while _s <= self.step_limit:
             yield ParticlesState(self.number_of_particles, self.number_of_dimensions, self._particles[:, _s, :])
             _s += 1
+
+    def particle_data(self) -> np.ndarray:
+        return self._particles.copy()
+
+    def get_bounds(self) -> np.ndarray:
+        mins = self._particles[:, :, 0:2].min(axis=(0, 1))
+        maxes = self._particles[:, :, 0:2].max(axis=(0, 1))
+        result = np.vstack((mins, maxes)).transpose()
+        return result

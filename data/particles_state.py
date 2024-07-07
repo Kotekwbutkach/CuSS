@@ -55,6 +55,9 @@ class ParticlesState:
     def get_particles(self):
         return np.array(self._particles)
 
+    def get_average_of_particles(self, particles: Iterable[int]):
+        return self._particles[list(particles), :].mean(axis=0)
+
     def __eq__(self, other):
         if not isinstance(other, ParticlesState):
             return False
