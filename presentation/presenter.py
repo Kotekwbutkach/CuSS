@@ -1,194 +1,118 @@
-import math
-from typing import Callable
-from pathlib import Path
-
 import numpy as np
 import pygame
-from pygame import Surface
-
-from data import ParticlesSystem
-from validation import Validate
 
 
 class Presenter:
-    ADJUST_BOUNDS_MARGIN = 10
-    GRID_GRANULARITY = 100
+    step: int
+    max_step: int
 
-    width: int
-    height: int
-    fps: int
-    step: 0
-    particles_system: ParticlesSystem
-    surface: Surface = None
+    trajectories: list[tuple[np.ndarray[float], pygame.Color]]
+    surface: pygame.surface
 
-    bounds: tuple[tuple[np.float64, np.float64]]
+    view_boundary: tuple[tuple[int, int], tuple[int, int]]
+    position_boundary: tuple[tuple[float | None, float | None], tuple[float | None, float | None]]
+    grid_diameter: int
 
-    grid_lines: list[tuple[tuple[int, int], tuple[int, int]]]
-
-    _should_draw_velocity: bool
-    _should_draw_grid: bool
-    _should_draw_trajectory: bool
-    _trajectory_shadow: int
-
-    data_to_view_transform: Callable[[tuple[np.float64, np.float64]], tuple[float, float]]
-
-    def __init__(self,
-                 particles_system: ParticlesSystem,
-                 width: int = 600,
-                 height: int = 600,
-                 fps: int = 20,
-                 should_draw_velocity: bool = True,
-                 should_draw_grid: bool = True,
-                 trajectory_shadow: int = None
-                 ):
-        self.particles_system = particles_system
-        self.width = width
-        self.height = height
-        self.fps = fps
+    def __init__(
+            self,
+            trajectories: list[tuple[np.ndarray[float], pygame.Color]],
+            max_step: int = None,
+            margin: int = 15):
         self.step = 0
+        self.max_step = trajectories[0][0].shape[3] - 1 if max_step is None else max_step
+        self.trajectories = trajectories
 
-        self._should_draw_velocity = should_draw_velocity
-        self._should_draw_grid = should_draw_grid
+        self.margin = margin
+        screen_size = (800, 600)
+        self.view_boundary = ((margin, margin), tuple(screen_size[i] - margin for i in range(2)))
+        pygame.init()
+        pygame.display.set_mode(screen_size)
+        self.surface = pygame.display.get_surface()
+        pygame.display.set_caption('CoDyS')
 
-        bounds = self.particles_system.get_bounds()
-        midpoint = ((bounds[0][1] + bounds[0][0])/2, (bounds[1][1] + bounds[1][0])/2)
-        bounds_scale = max([
-            (bounds[0][1] - bounds[0][0])/self.width,
-            (bounds[1][1] - bounds[1][0])/self.height])
-        self.bounds = (
-            (midpoint[0] - (width * bounds_scale / 2), midpoint[0] + (width * bounds_scale / 2)),
-            (midpoint[1] - (height * bounds_scale / 2), midpoint[1] + (height * bounds_scale / 2))
-        )
+        self.position_boundary = ((None, None), (None, None))
+        self.get_boundaries()
 
-        self.data_to_view_transform = self.get_data_to_view_transform()
+    def get_boundaries(self):
+        for traj, _ in self.trajectories:
+            bounds = [np.min(traj, axis=(1, 3)), np.max(traj, axis=(1, 3))]
+            position_boundary_0 = (
+                tuple(
+                    bounds[0][0][j]
+                    if self.position_boundary[0][j] is None
+                    or self.position_boundary[0][j] > bounds[0][0][j]
+                    else self.position_boundary[0][j]
+                    for j in [0, 1]))
+            position_boundary_1 = (
+                tuple(
+                    bounds[1][0][j]
+                    if self.position_boundary[1][j] is None
+                    or self.position_boundary[1][j] < bounds[1][0][j]
+                    else self.position_boundary[1][j]
+                    for j in [0, 1]))
+            self.position_boundary = (int(position_boundary_0), int(position_boundary_1) + 1)
 
-        if should_draw_grid:
-            gridpoints_x = np.arange(
-                math.ceil(self.bounds[0][0]/self.GRID_GRANULARITY) * self.GRID_GRANULARITY,
-                self.bounds[0][1],
-                self.GRID_GRANULARITY)
-            gridpoints_y = np.arange(
-                math.ceil(self.bounds[1][0] / self.GRID_GRANULARITY) * self.GRID_GRANULARITY,
-                self.bounds[1][1],
-                self.GRID_GRANULARITY)
-            self.grid_lines = ([(self.data_to_view_transform((x, self.bounds[1][0])),
-                                 self.data_to_view_transform((x, self.bounds[1][1]))) for x in gridpoints_x] +
-                               [(self.data_to_view_transform((self.bounds[0][0], y)),
-                                 self.data_to_view_transform((self.bounds[0][1], y))) for y in gridpoints_y])
+    def mtv_translate(self, position: tuple[float, float]):
+        fraction = [(position[i] - self.position_boundary[0][i])
+                    / (self.position_boundary[1][i] - self.position_boundary[0][i]) for i in range(2)]
 
-            if trajectory_shadow is None:
-                self._should_draw_trajectory = False
-            else:
-                self._trajectory_shadow = trajectory_shadow
-                self._should_draw_trajectory = True
+        view_position = tuple(
+            self.view_boundary[0][i]
+            + (self.view_boundary[1][i] - self.view_boundary[0][i])
+            * fraction[i] for i in range(2))
+        return view_position
 
-
-    def get_data_to_view_transform(self) -> Callable[[tuple[np.float64, ...]], tuple[float, ...]]:
-
-        def _transform(x: tuple[np.float64, ...]) -> tuple[float, ...]:
-            result = [np.interp(
-                x[i],
-                self.bounds[i],
-                (self.ADJUST_BOUNDS_MARGIN, (
-                    self.width - self.ADJUST_BOUNDS_MARGIN,
-                    self.height - self.ADJUST_BOUNDS_MARGIN)[i]))
-                for i in range(2)]
-            return result
-        return _transform
-
-    def _draw_centerpoint(self):
-        centerpoint = self.data_to_view_transform((0, 0))
-        pygame.draw.line(
-            self.surface,
-            pygame.Color("gray20"),
-            (centerpoint[0], self.ADJUST_BOUNDS_MARGIN),
-            (centerpoint[0], self.height - self.ADJUST_BOUNDS_MARGIN),
-            2
-        )
-        pygame.draw.line(
-            self.surface,
-            pygame.Color("gray20"),
-            (self.ADJUST_BOUNDS_MARGIN, centerpoint[1]),
-            (self.width - self.ADJUST_BOUNDS_MARGIN, centerpoint[1]),
-            2
-        )
-        pygame.draw.line(
-            self.surface,
-            pygame.Color("gray30"),
-            (centerpoint[0] - 10, centerpoint[1]),
-            (centerpoint[0] + 10, centerpoint[1]),
-            3
-        )
-        pygame.draw.line(
-            self.surface,
-            pygame.Color("gray30"),
-            (centerpoint[0], centerpoint[1] - 10),
-            (centerpoint[0], centerpoint[1] + 10),
-            3
-        )
-
-    def _draw_particle(self, particle: np.ndarray):
-        pygame.draw.circle(
+    def draw_bounds(self):
+        origin = self.mtv_translate(self.position_boundary[0])
+        size = tuple(
+            self.mtv_translate(self.position_boundary[1])[i]
+            - self.mtv_translate(self.position_boundary[0])[i]
+            for i in range(2))
+        pygame.draw.rect(
             self.surface,
             pygame.Color("white"),
-            self.data_to_view_transform((particle[0], particle[1])),
-            5)
+            pygame.Rect(*origin, *size),
+            1
+        )
 
-        if self._should_draw_velocity:
+    def draw_grid(self):
+        grid_minor = 25
+        origin = tuple(int(self.position_boundary[0][i]/grid_minor) * grid_minor for i in range(2))
+        end = tuple(int(self.position_boundary[1][i]/grid_minor) * grid_minor for i in range(2))
+        lines = (
+            [(
+                (self.position_boundary[0][0], origin[1] + (k+1) * grid_minor),
+                (self.position_boundary[1][0], origin[1] + (k+1) * grid_minor))
+                for k in range((end[1] - origin[1]) // grid_minor)]
+            + [(
+                (origin[0] + (k+1) * grid_minor, origin[1]),
+                (origin[0] + (k+1) * grid_minor, end[1]))
+                for k in range((end[0] - origin[0]) // grid_minor)])
+        for line_start, line_end in lines:
             pygame.draw.line(
                 self.surface,
-                pygame.Color("red"),
-                self.data_to_view_transform((particle[0], particle[1])),
-                self.data_to_view_transform((particle[0] + particle[2], particle[1] + particle[3])),
-                width=3)
+                pygame.Color("White"),
+                self.mtv_translate(line_start),
+                self.mtv_translate(line_end))
 
-    def _draw_trajectories(self, step: int):
-        shadow_step = max(0, step-self._trajectory_shadow)
-        position_data = self.particles_system.particle_data()[:, shadow_step:step, 0:2].reshape(-1, 2)
-        for particle_point in position_data:
-            pygame.draw.circle(
-                self.surface,
-                pygame.Color("gray30"),
-                self.data_to_view_transform((particle_point[0], particle_point[1])),
-                1)
+    def draw_trajectories(self):
+        for traj, color in self.trajectories:
+            for i in range(traj.shape[1]):
+                pygame.draw.circle(
+                    self.surface,
+                    color,
+                    self.mtv_translate((traj[0, i, 0, self.step], traj[0, i, 1, self.step])),
+                    5)
 
-    def _draw_grid(self):
-        for grid_line in self.grid_lines:
-            pygame.draw.line(self.surface, pygame.Color("gray20"), *grid_line)
-
-    def _draw_step(self, step: int):
-        Validate(step).is_type(int).is_less_than_or_equal(self.particles_system.step_limit)
-        Validate(self.particles_system.number_of_dimensions).is_equal_to(2)
-        if self._should_draw_grid:
-            self._draw_grid()
-        self._draw_centerpoint()
-        if self._should_draw_trajectory:
-            self._draw_trajectories(step)
-        for particle in self.particles_system.at_step(step).particles_range():
-            self._draw_particle(particle)
-
-    def _draw_step_text(self, step: int, font: pygame.font):
-        Validate(step).is_type(int).is_less_than_or_equal(self.particles_system.step_limit)
-        step_text = font.render(f'Step {self.step} of {self.particles_system.step_limit}', False, pygame.Color("white"))
-        self.surface.blit(step_text, (0, 0))
+    def draw_step(self):
+        self.surface.fill(pygame.Color("black"))
+        self.draw_bounds()
+        self.draw_grid()
+        self.draw_trajectories()
+        pygame.display.flip()
 
     def present(self):
-        pygame.init()
-        pygame.display.set_mode((self.width, self.height))
-        self.surface = pygame.display.get_surface()
-        pygame.display.set_caption('CuSS')
-        my_file = Path("cuss.png")
-        if my_file.is_file():
-            pygame_icon = pygame.image.load("cuss.png")
-            pygame.display.set_icon(pygame_icon)
-
-        pygame.font.init()
-        font = pygame.font.SysFont('Arial', 20)
-
-        self.surface.fill(pygame.Color("black"))
-        self._draw_step(self.step)
-        self._draw_step_text(self.step, font)
-        pygame.display.flip()
+        self.draw_step()
 
         clock = pygame.time.Clock()
         running = True
@@ -202,10 +126,7 @@ class Presenter:
                     if event.key == pygame.K_RETURN:
                         started = True
             if started:
-                self.surface.fill(pygame.Color("black"))
-                self._draw_step(self.step)
-                self._draw_step_text(self.step, font)
-                pygame.display.flip()
-                if self.step < self.particles_system.step_limit:
+                self.draw_step()
+                if self.step < self.max_step:
                     self.step += 1
-                clock.tick(self.fps)
+                clock.tick(120)

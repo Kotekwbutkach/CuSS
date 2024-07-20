@@ -24,11 +24,11 @@ def _test_constant_function(array: np.ndarray):
 # /data preparation
 
 
-class TestRk4OdeModel(unittest.TestCase):
+class TestOdeModel(unittest.TestCase):
     def test_identity_model_returns_correct_trajectory(self):
         model = OdeModel(TIME_STEP, _test_identity_function)
 
-        initial_data = np.random.normal(0, 1, 2 * NUMBER_OF_PARTICLES).reshape(2, -1)
+        initial_data = np.random.normal(0, 1, 4 * NUMBER_OF_PARTICLES).reshape(2, -1, 2)
         result = model.calculate_trajectory(initial_data, STEPS_LIMIT)
         for t in range(STEPS_LIMIT):
             np.testing.assert_array_equal(initial_data, result[:, :, t])
@@ -36,7 +36,7 @@ class TestRk4OdeModel(unittest.TestCase):
     def test_constant_model_returns_correct_trajectory(self):
         model = OdeModel(TIME_STEP, _test_constant_function)
 
-        initial_data = np.random.normal(0, 1, 2 * NUMBER_OF_PARTICLES).reshape(2, -1)
+        initial_data = np.random.normal(0, 1, 4 * NUMBER_OF_PARTICLES).reshape(2, -1, 2)
         result = model.calculate_trajectory(initial_data, STEPS_LIMIT)
         for t in range(STEPS_LIMIT):
             state = initial_data

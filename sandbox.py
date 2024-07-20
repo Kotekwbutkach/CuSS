@@ -1,42 +1,44 @@
 import numpy as np
 import pygame
 
-from calculation import ParticlesSystemCalculator
-from data import ParticlesSystem
-from models import ConstantAccelerationModel
-from presentation import Presenter, VelocityPresenter
+from models.ode_model_factory import OdeModelFactory
+from presentation import Presenter
 
 if __name__ == "__main__":
-    number_of_particles = 5
-    number_of_dimensions = 2
-    step_limit = 200
+    NUMBER_OF_DIMENSIONS = 2
+    NUMBER_OF_PARTICLES = 5
+    NUMBER_OF_STEPS = 1000
 
-    particles_system_args = {
-        "number_of_particles": number_of_particles,
-        "number_of_dimensions": number_of_dimensions,
-        "step_limit": step_limit,
-        "particles": np.array([[
-            [x + 10 * y] * number_of_dimensions +
-            [x + 2 * y] * number_of_dimensions +
-            [0] * number_of_dimensions for x in range(step_limit)] for y in range(number_of_particles)])}
-
-    particles_system = ParticlesSystem(**particles_system_args)
 
     def phi(s: float):
-        return 1/(1 + s ** 2)
+        return 1/(1+s**2)
 
-    arrphi = np.vectorize(phi)
+    vector_phi = np.vectorize(phi)
+    initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
+    initial_condition[0:] = (np.random.normal(300, 50, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+                             .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
+    initial_condition[1:] = (np.random.normal(5, 5, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+                             .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
 
-    for _n, particle in enumerate(particles_system.at_step(0).particles_range()):
-        distance = np.std(
-            (particles_system.at_step(0).get_particles() - particle)[:, particles_system.at_step(0).position_indices])
-        velocity_difference = (
-                particles_system.at_step(0).get_particles() - particle)[:, particles_system.at_step(0).velocity_indices]
-        acceleration = np.mean(np.multiply(velocity_difference, arrphi(distance)), axis=0)
-        particle[particles_system.at_step(0).acceleration_indices] = acceleration
+    state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
-    # model = ConstantAccelerationModel()
-    #
-    # particles_system_calculator = ParticlesSystemCalculator(particles_system, model, 0.1)
-    # particles_system_calculator.calculate()
+    standard_model = OdeModelFactory.create_standard(0.05, vector_phi)
+    higher_order_interactions_model = OdeModelFactory.create_higher_order(0.05, 3, vector_phi)
+
+    standard_traj = standard_model.calculate_trajectory(
+        initial_condition,
+        NUMBER_OF_STEPS)
+    higher_order_interactions_traj = higher_order_interactions_model.calculate_trajectory(
+        initial_condition,
+        NUMBER_OF_STEPS)
+
+    trajectories = [
+        (standard_traj, pygame.Color("green")),
+        (higher_order_interactions_traj, pygame.Color("purple"))]
+
+    presenter = Presenter(trajectories)
+    presenter.present()
+
+    presenter.get_boundaries()
+
 

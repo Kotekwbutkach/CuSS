@@ -2,11 +2,9 @@ import sys
 import tkinter as tk
 
 import numpy as np
+import pygame
 
-from calculation import ParticlesSystemCalculator
-from data import ParticlesSystem
-from models import CuckerSmaleModel, HigherOrderCuckerSmaleModel
-from presentation import Presenter
+from models.ode_model_factory import OdeModelFactory
 from user_interface.int_entry import IntEntry
 from user_interface.normal_params_frame import NormalParamsFrame
 
@@ -41,73 +39,78 @@ if __name__ == "__main__":
     start_button.grid(row=2, column=0)
     window.mainloop()
 
+    print([[float(x.get()) for x in var] for var in normal_distribution_param_string_vars])
+
     if not should_start:
         sys.exit()
 
-    STEP_LIMIT = 400
+    NUMBER_OF_DIMENSIONS = 2
+    NUMBER_OF_PARTICLES = 5
+    NUMBER_OF_STEPS = 3000
 
-    normal_distribution_params = np.array([
-        [float(var.get()) if var.get() != '' else i
-         for var in row]
-        for i, row in enumerate(normal_distribution_param_string_vars)])
-    number_of_particles = int(number_of_particles_str_var.get())
-    step_limit = STEP_LIMIT
+    def phi(s: float):
+        return 1/(1+s**2)
 
-    particles_system_args = {
-        "number_of_particles": number_of_particles,
-        "number_of_dimensions": 2,
-        "step_limit": step_limit,
-        "particles": np.zeros((number_of_particles, step_limit + 1, 6))}
+    vector_phi = np.vectorize(phi)
+    initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
+    initial_condition[0:] = (np.random.normal(300, 50, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+                             .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
+    initial_condition[1:] = (np.random.normal(5, 5, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+                             .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
 
-    particles_system_args["particles"][:, 0, 0] = (
-        np.random.normal(
-            loc=normal_distribution_params[0][0],
-            scale=normal_distribution_params[1][0],
-            size=number_of_particles))
-    particles_system_args["particles"][:, 0, 1] = (
-        np.random.normal(
-            loc=normal_distribution_params[0][1],
-            scale=normal_distribution_params[1][1],
-            size=number_of_particles))
+    state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
-    particles_system_args["particles"][:, 0, 2] = (
-        np.random.normal(
-            loc=normal_distribution_params[0][2],
-            scale=normal_distribution_params[1][2],
-            size=number_of_particles))
+    model1 = OdeModelFactory.create_higher_order(0.05, 3, vector_phi)
+    traj1 = model1.calculate_trajectory(initial_condition, NUMBER_OF_STEPS)
 
-    particles_system_args["particles"][:, 0, 3] = (
-        np.random.normal(
-            loc=normal_distribution_params[0][3],
-            scale=normal_distribution_params[1][3],
-            size=number_of_particles))
+    model2 = OdeModelFactory.create_standard(0.05, vector_phi)
+    traj2 = model2.calculate_trajectory(initial_condition, NUMBER_OF_STEPS)
 
-    particles_system1 = ParticlesSystem(**particles_system_args)
-    model1 = CuckerSmaleModel()
+    pygame.init()
+    pygame.display.set_mode((800, 800))
+    surface = pygame.display.get_surface()
+    pygame.display.set_caption('CoDyS')
+    pygame.font.init()
+    font = pygame.font.SysFont('Arial', 20)
 
-    particles_system_calculator1 = ParticlesSystemCalculator(particles_system1, model1, 0.1)
-    particles_system_calculator1.calculate()
+    STEP = 0
 
-    presenter1 = Presenter(
-        particles_system1,
-        width=800,
-        height=600,
-        fps=30,
-        should_draw_velocity=True,
-        trajectory_shadow=100)
-    presenter1.present()
+    surface.fill(pygame.Color("black"))
 
-    particles_system2 = ParticlesSystem(**particles_system_args)
-    model2 = HigherOrderCuckerSmaleModel(number_of_particles, 4)
+    def draw_particles():
+        for i in range(traj1.shape[1]):
+            pygame.draw.circle(
+                surface,
+                pygame.Color("purple"),
+                (traj1[0, i, 0, STEP], traj1[0, i, 1, STEP]),
+                5)
 
-    particles_system_calculator2 = ParticlesSystemCalculator(particles_system2, model2, 0.1)
-    particles_system_calculator2.calculate()
+        for i in range(traj2.shape[1]):
+            pygame.draw.circle(
+                surface,
+                pygame.Color("green"),
+                (traj2[0, i, 0, STEP], traj2[0, i, 1, STEP]),
+                5)
 
-    presenter2 = Presenter(
-        particles_system2,
-        width=800,
-        height=600,
-        fps=30,
-        should_draw_velocity=True,
-        trajectory_shadow=100)
-    presenter2.present()
+
+    draw_particles()
+    pygame.display.flip()
+
+    clock = pygame.time.Clock()
+    running = True
+    started = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    started = True
+        if started:
+            surface.fill(pygame.Color("black"))
+            draw_particles()
+            pygame.display.flip()
+            if STEP < NUMBER_OF_STEPS:
+                STEP += 1
+            clock.tick(120)
