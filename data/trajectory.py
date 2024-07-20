@@ -1,13 +1,11 @@
 import numpy as np
-
-Point = tuple[float, float]
-Boundary = tuple[Point, Point]
+from data.aliases import *
 
 
 class Trajectory:
     data: np.ndarray
-    torus_bounds: None | Boundary
+    torus_bounds: BoundaryFloat | None
 
-    def __init__(self, data: np.ndarray, torus_bounds = None):
+    def __init__(self, data: np.ndarray, torus_bounds: BoundaryFloat = None):
         self.data = data
         self.torus_bounds = torus_bounds

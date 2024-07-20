@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 
 from color_helper import ColorHelper
+from data.aliases import *
 
 
 class Presenter:
@@ -10,10 +11,10 @@ class Presenter:
 
     trajectories: list[tuple[np.ndarray[float], pygame.Color]]
     surface: pygame.surface
-    screen_size: tuple[int, int]
+    screen_size: PointInt
 
-    view_boundary: tuple[tuple[int, int], tuple[int, int]]
-    position_boundary: tuple[tuple[float | None, float | None], tuple[float | None, float | None]]
+    view_boundary: BoundaryInt
+    position_boundary: NullableBoundaryFloat
     minor_grid: int
     major_grid: int
 
@@ -26,7 +27,7 @@ class Presenter:
             margin: int = 15,
             minor_grid: int = 20,
             major_grid: int = 100,
-            screen_size: tuple[int, int] = (800, 600),
+            screen_size: PointInt = (800, 600),
             trace_length: int = 200,
             velocity_length: float = 1.5):
         self.step = 0
@@ -80,7 +81,7 @@ class Presenter:
             ((int((midpoint[0] + half_width) / self.minor_grid) + 1) * self.minor_grid,
              (int((midpoint[1] + half_height) / self.minor_grid) + 1) * self.minor_grid))
 
-    def mtv_translate(self, position: tuple[float, float]):
+    def mtv_translate(self, position: PointFloat) -> PointFloat:
         fraction = [(position[i] - self.position_boundary[0][i])
                     / (self.position_boundary[1][i] - self.position_boundary[0][i]) for i in range(2)]
 
@@ -103,7 +104,7 @@ class Presenter:
             1
         )
 
-    def _get_grid_lines(self, origin, end, grid_diam):
+    def _get_grid_lines(self, origin: PointInt, end: PointInt, grid_diam):
         return (
             [(
                 (self.position_boundary[0][0], origin[1] + (k+1) * grid_diam),
@@ -123,8 +124,12 @@ class Presenter:
                 self.mtv_translate(line_end))
 
     def draw_grid(self):
-        origin = tuple(int(self.position_boundary[0][i]/self.minor_grid) * self.minor_grid for i in range(2))
-        end = tuple(int(self.position_boundary[1][i]/self.minor_grid) * self.minor_grid for i in range(2))
+        origin = (
+            int(self.position_boundary[0][0]/self.minor_grid) * self.minor_grid,
+            int(self.position_boundary[0][1]/self.minor_grid) * self.minor_grid)
+        end = (
+            int(self.position_boundary[1][0]/self.minor_grid) * self.minor_grid,
+            int(self.position_boundary[1][1]/self.minor_grid) * self.minor_grid)
         minor_lines = self._get_grid_lines(origin, end, self.minor_grid)
         self._draw_lines(minor_lines, pygame.Color("Gray40"))
         major_lines = self._get_grid_lines(origin, end, self.major_grid)
