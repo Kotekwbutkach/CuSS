@@ -23,7 +23,7 @@ if __name__ == "__main__":
     state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
     standard_model = OdeModelFactory.create_standard(0.05, vector_phi)
-    higher_order_interactions_model = OdeModelFactory.create_higher_order(0.05, 3, vector_phi)
+    higher_order_interactions_model = OdeModelFactory.create_higher_order(0.05, 2, vector_phi)
 
     standard_traj = standard_model.calculate_trajectory(
         initial_condition,

@@ -1,6 +1,8 @@
 import numpy as np
 import pygame
 
+from color_helper import ColorHelper
+
 
 class Presenter:
     step: int
@@ -8,23 +10,34 @@ class Presenter:
 
     trajectories: list[tuple[np.ndarray[float], pygame.Color]]
     surface: pygame.surface
+    screen_size: tuple[int, int]
 
     view_boundary: tuple[tuple[int, int], tuple[int, int]]
     position_boundary: tuple[tuple[float | None, float | None], tuple[float | None, float | None]]
-    grid_diameter: int
+    minor_grid: int
+    major_grid: int
+
+    trace_length: int
 
     def __init__(
             self,
             trajectories: list[tuple[np.ndarray[float], pygame.Color]],
             max_step: int = None,
-            margin: int = 15):
+            margin: int = 15,
+            minor_grid: int = 20,
+            major_grid: int = 100,
+            screen_size: tuple[int, int] = (800, 600),
+            trace_length: int = 200,
+            velocity_length: float = 1.5):
         self.step = 0
         self.max_step = trajectories[0][0].shape[3] - 1 if max_step is None else max_step
         self.trajectories = trajectories
 
         self.margin = margin
-        screen_size = (800, 600)
+        self.screen_size = (800, 600)
         self.view_boundary = ((margin, margin), tuple(screen_size[i] - margin for i in range(2)))
+        self.minor_grid = minor_grid
+        self.major_grid = major_grid
         pygame.init()
         pygame.display.set_mode(screen_size)
         self.surface = pygame.display.get_surface()
@@ -32,6 +45,9 @@ class Presenter:
 
         self.position_boundary = ((None, None), (None, None))
         self.get_boundaries()
+
+        self.trace_length = trace_length
+        self.velocity_length = velocity_length
 
     def get_boundaries(self):
         for traj, _ in self.trajectories:
@@ -50,7 +66,19 @@ class Presenter:
                     or self.position_boundary[1][j] < bounds[1][0][j]
                     else self.position_boundary[1][j]
                     for j in [0, 1]))
-            self.position_boundary = (int(position_boundary_0), int(position_boundary_1) + 1)
+            self.position_boundary = (position_boundary_0, position_boundary_1)
+        half_width = (self.position_boundary[1][0] - self.position_boundary[0][0]) / 2
+        half_height = (self.position_boundary[1][1] - self.position_boundary[0][1]) / 2
+        midpoint = tuple((self.position_boundary[1][i] + self.position_boundary[0][i]) / 2 for i in range(2))
+        if half_width * self.screen_size[1] > half_height * self.screen_size[0]:
+            half_height = half_width * self.screen_size[1] / self.screen_size[0]
+        else:
+            half_width = half_height * self.screen_size[0] / self.screen_size[1]
+        self.position_boundary = (
+            (int((midpoint[0] - half_width) / self.minor_grid) * self.minor_grid,
+             int((midpoint[1] - half_height) / self.minor_grid) * self.minor_grid),
+            ((int((midpoint[0] + half_width) / self.minor_grid) + 1) * self.minor_grid,
+             (int((midpoint[1] + half_height) / self.minor_grid) + 1) * self.minor_grid))
 
     def mtv_translate(self, position: tuple[float, float]):
         fraction = [(position[i] - self.position_boundary[0][i])
@@ -75,25 +103,32 @@ class Presenter:
             1
         )
 
-    def draw_grid(self):
-        grid_minor = 25
-        origin = tuple(int(self.position_boundary[0][i]/grid_minor) * grid_minor for i in range(2))
-        end = tuple(int(self.position_boundary[1][i]/grid_minor) * grid_minor for i in range(2))
-        lines = (
+    def _get_grid_lines(self, origin, end, grid_diam):
+        return (
             [(
-                (self.position_boundary[0][0], origin[1] + (k+1) * grid_minor),
-                (self.position_boundary[1][0], origin[1] + (k+1) * grid_minor))
-                for k in range((end[1] - origin[1]) // grid_minor)]
+                (self.position_boundary[0][0], origin[1] + (k+1) * grid_diam),
+                (self.position_boundary[1][0], origin[1] + (k+1) * grid_diam))
+                for k in range((end[1] - origin[1]) // grid_diam)]
             + [(
-                (origin[0] + (k+1) * grid_minor, origin[1]),
-                (origin[0] + (k+1) * grid_minor, end[1]))
-                for k in range((end[0] - origin[0]) // grid_minor)])
+                (origin[0] + (k+1) * grid_diam, self.position_boundary[0][1]),
+                (origin[0] + (k+1) * grid_diam, self.position_boundary[1][1]))
+                for k in range((end[0] - origin[0]) // grid_diam)])
+
+    def _draw_lines(self, lines, color: pygame.Color):
         for line_start, line_end in lines:
             pygame.draw.line(
                 self.surface,
-                pygame.Color("White"),
+                pygame.Color(color),
                 self.mtv_translate(line_start),
                 self.mtv_translate(line_end))
+
+    def draw_grid(self):
+        origin = tuple(int(self.position_boundary[0][i]/self.minor_grid) * self.minor_grid for i in range(2))
+        end = tuple(int(self.position_boundary[1][i]/self.minor_grid) * self.minor_grid for i in range(2))
+        minor_lines = self._get_grid_lines(origin, end, self.minor_grid)
+        self._draw_lines(minor_lines, pygame.Color("Gray40"))
+        major_lines = self._get_grid_lines(origin, end, self.major_grid)
+        self._draw_lines(major_lines, pygame.Color("Gray60"))
 
     def draw_trajectories(self):
         for traj, color in self.trajectories:
@@ -104,11 +139,43 @@ class Presenter:
                     self.mtv_translate((traj[0, i, 0, self.step], traj[0, i, 1, self.step])),
                     5)
 
+    def draw_velocities(self):
+        for traj, color in self.trajectories:
+            for i in range(traj.shape[1]):
+                pygame.draw.line(
+                    self.surface,
+                    ColorHelper.mix(color, pygame.Color("white"), 1, 3),
+                    self.mtv_translate((traj[0, i, 0, self.step], traj[0, i, 1, self.step])),
+                    self.mtv_translate((traj[0, i, 0, self.step] + self.velocity_length * traj[1, i, 0, self.step],
+                                        traj[0, i, 1, self.step] + self.velocity_length * traj[1, i, 1, self.step])),
+                    3)
+
+    def draw_traces(self):
+        trace_start = max(0, self.step - self.trace_length)
+        for traj, color in self.trajectories:
+            for i in range(traj.shape[1]):
+                for s in range(trace_start, self.step):
+                    current_color = ColorHelper.mix(color,
+                                                    pygame.Color("black"),
+                                                    s - trace_start,
+                                                    self.step - trace_start)
+                    current_size = (3 * s) / self.step
+                    pygame.draw.circle(
+                        self.surface,
+                        current_color,
+                        self.mtv_translate((traj[0, i, 0, s], traj[0, i, 1, s])),
+                        current_size)
+
     def draw_step(self):
         self.surface.fill(pygame.Color("black"))
-        self.draw_bounds()
         self.draw_grid()
+        self.draw_bounds()
+        if self.trace_length > 0:
+            self.draw_traces()
         self.draw_trajectories()
+        if self.velocity_length > 0:
+            self.draw_velocities()
+
         pygame.display.flip()
 
     def present(self):
