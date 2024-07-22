@@ -23,6 +23,7 @@ class Presenter:
     def __init__(
             self,
             trajectories: list[tuple[np.ndarray[float], pygame.Color]],
+            bounds: BoundaryInt = None,
             max_step: int = None,
             margin: int = 15,
             minor_grid: int = 20,
@@ -35,8 +36,8 @@ class Presenter:
         self.trajectories = trajectories
 
         self.margin = margin
-        self.screen_size = (800, 600)
-        self.view_boundary = ((margin, margin), tuple(screen_size[i] - margin for i in range(2)))
+        self.screen_size = screen_size
+        self.view_boundary = ((margin, margin), (screen_size[0] - margin, screen_size[1] - margin))
         self.minor_grid = minor_grid
         self.major_grid = major_grid
         pygame.init()
@@ -44,8 +45,11 @@ class Presenter:
         self.surface = pygame.display.get_surface()
         pygame.display.set_caption('CoDyS')
 
-        self.position_boundary = ((None, None), (None, None))
-        self.get_boundaries()
+        if bounds is not None:
+            self.position_boundary = bounds
+        else:
+            self.position_boundary = ((None, None), (None, None))
+            self.get_boundaries()
 
         self.trace_length = trace_length
         self.velocity_length = velocity_length
