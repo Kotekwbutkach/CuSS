@@ -38,8 +38,8 @@ class OdeModel:
         delta = (k1 + (2 * k2) + (2 * k3) + k4)/6
         return self.correct_modulo(state + self.time_delta * delta, bounds)
 
+    @staticmethod
     def correct_modulo(
-            self,
             state: np.ndarray,
             bounds: BoundaryInt | None):
         positions = state[0]

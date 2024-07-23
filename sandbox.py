@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
 
     def _phi(s: float):
-        return 1/(1+s**2)
+        return 10/(1+s**2)
 
     def standard_distance(a1: np.ndarray, a2: np.ndarray):
         return np.sqrt(np.sum((a1 - a2) ** 2, axis=0))
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
-    BOUNDS = ((0, 0), (300, 300))
+    BOUNDS = ((0, 0), (600, 600))
 
     standard_model = OdeModelFactory.create_standard(0.05, phi, modulo_distance_at(BOUNDS))
     higher_order_interactions_model = OdeModelFactory.create_higher_order(0.05, 2, phi)
