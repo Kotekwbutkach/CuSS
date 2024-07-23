@@ -4,7 +4,7 @@ import tkinter as tk
 import numpy as np
 import pygame
 
-from models.ode_model_factory import OdeModelFactory
+from models.ode_model_builder import OdeModelBuilder
 from user_interface.int_entry import IntEntry
 from user_interface.normal_params_frame import NormalParamsFrame
 
@@ -60,10 +60,10 @@ if __name__ == "__main__":
 
     state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
-    model1 = OdeModelFactory.create_higher_order(0.05, 3, vector_phi)
+    model1 = OdeModelBuilder.create_higher_order(0.05, 3, vector_phi)
     traj1 = model1.calculate_trajectory(initial_condition, NUMBER_OF_STEPS)
 
-    model2 = OdeModelFactory.create_standard(0.05, vector_phi)
+    model2 = OdeModelBuilder.create_standard(0.05, vector_phi)
     traj2 = model2.calculate_trajectory(initial_condition, NUMBER_OF_STEPS)
 
     pygame.init()

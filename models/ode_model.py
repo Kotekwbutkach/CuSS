@@ -1,13 +1,9 @@
-from typing import Callable
-
-import numpy as np
-
 from data.aliases import *
 
 
 class OdeModel:
     time_delta: float
-    function: Callable[[np.ndarray], np.ndarray]
+    function: ArrayMethod
 
     def __init__(
             self,
