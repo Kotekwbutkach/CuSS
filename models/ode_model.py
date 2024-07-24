@@ -16,7 +16,7 @@ class OdeModel:
             self,
             initial_condition: np.ndarray,
             steps_limit: int,
-            bounds: BoundaryInt | None) -> np.ndarray:
+            bounds: BoundaryInt | None = None) -> np.ndarray:
         trajectory = np.zeros(tuple([*initial_condition.shape, steps_limit + 1]))
         trajectory[:, :, :, 0] = initial_condition
         for t in range(steps_limit):

@@ -93,9 +93,9 @@ class OdeModelBuilder:
 
                 positions = np.tile(state, len(subsets)).reshape(2, n, len(subsets), 2)
 
-                distance_in_x = distance(positions.transpose((0, 2, 1, 3)), subset_positions)
+                distance_in_x = distance(positions.transpose((0, 3, 1, 2))[0, :], subset_positions.transpose(0, 3, 2, 1)[0, :])
                 interaction_strength = np.tile(phi(distance_in_x), 2).reshape(len(subsets), n, 2)
-                difference_in_v = (subset_positions - positions.transpose((0, 2, 1, 3)))[1, :]
+                difference_in_v = (subset_positions[1, :] - positions.transpose((0, 2, 1, 3))[1, :])
 
                 pairwise_acceleration = np.multiply(difference_in_v, interaction_strength)
                 result[1, :] = np.mean(pairwise_acceleration, axis=0)

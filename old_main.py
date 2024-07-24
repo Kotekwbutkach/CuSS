@@ -6,7 +6,7 @@ from calculation import ParticlesSystemCalculator
 from data import ParticlesSystem
 from models import CuckerSmaleModel
 from models.old_models.higher_order_cucker_smale_model import HigherOrderCuckerSmaleModel
-from plotting.plotter import Plotter
+from old.plotter import Plotter
 from old.presentation import Presenter
 
 number_of_particles = 20
