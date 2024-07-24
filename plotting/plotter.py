@@ -26,29 +26,31 @@ class Plotter:
         upper_bound_x, upper_bound_v = 0, 0
 
         for traj, color in self.trajectories:
+            number_of_particles = traj.shape[1]
+
             position = traj[0, :]
             velocity = traj[1, :]
 
-            distance = np.tile(position, (5, 1, 1, 1)) - np.tile(position, (5, 1, 1, 1)).transpose(1, 0, 2, 3)
-            max_of_distances = np.max(np.sqrt(np.sum(distance ** 2, axis=2)), axis=(0, 1))
-            ax_x.plot(max_of_distances, color=tuple(c/255 for c in color))
-            upper_bound_x = max(np.max(max_of_distances), upper_bound_x)
+            position_distance = (
+                np.tile(position, (number_of_particles, 1, 1, 1))
+                - np.tile(position, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
+            max_of_position_distances = np.max(np.sqrt(np.sum(position_distance ** 2, axis=2)), axis=(0, 1))
+            ax_x.plot(max_of_position_distances, color=tuple(c/255 for c in color))
+            upper_bound_x = max(np.max(max_of_position_distances), upper_bound_x)
 
-            max_of_velocities = np.max(np.sqrt(np.sum(velocity ** 2, axis=1)), axis=0)
-            print(max_of_velocities.shape)
-            ax_v.plot(max_of_velocities, color=tuple(c / 255 for c in color))
-            upper_bound_v = max(np.max(max_of_velocities), upper_bound_v)
+            velocity_distance = (
+                np.tile(velocity, (number_of_particles, 1, 1, 1))
+                - np.tile(velocity, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
+            max_of_velocity_distances = np.max(np.sqrt(np.sum(velocity_distance ** 2, axis=2)), axis=(0, 1))
+            ax_v.plot(max_of_velocity_distances, color=tuple(c / 255 for c in color))
+            upper_bound_v = max(np.max(max_of_velocity_distances), upper_bound_v)
 
-            print(max_of_distances)
-            print(max_of_distances.shape)
-            print(max_of_velocities)
-            print(max_of_velocities.shape)
         ax_x.set_ylim((0, upper_bound_x * 1.1))
         ax_x.legend(["standardowy model", "model 3 rzędu"])
         ax_x.set_title("Maksymalna odległość pary cząstek")
         ax_v.set_ylim((0, upper_bound_v * 1.1))
         ax_v.legend(["standardowy model", "model 3 rzędu"])
-        ax_v.set_title("Maksymalna prędkość cząstki")
+        ax_v.set_title("Maksymalna różnica prędkości pary cząstek")
 
         plt.show()
         plt.savefig(

@@ -93,12 +93,17 @@ class OdeModelBuilder:
 
                 positions = np.tile(state, len(subsets)).reshape(2, n, len(subsets), 2)
 
-                distance_in_x = distance(positions.transpose((0, 3, 1, 2))[0, :], subset_positions.transpose(0, 3, 2, 1)[0, :])
-                interaction_strength = np.tile(phi(distance_in_x), 2).reshape(len(subsets), n, 2)
-                difference_in_v = (subset_positions[1, :] - positions.transpose((0, 2, 1, 3))[1, :])
+                distance_in_x = distance(
+                    positions.transpose((0, 3, 1, 2))[0, :],
+                    subset_positions.transpose(0, 3, 2, 1)[0, :])
+                interaction_strength = np.tile(phi(distance_in_x), (2, 1, 1))
+
+                difference_in_v = (
+                    subset_positions[1, :].transpose(2, 1, 0)
+                    - positions[1, :].transpose(2, 0, 1))
 
                 pairwise_acceleration = np.multiply(difference_in_v, interaction_strength)
-                result[1, :] = np.mean(pairwise_acceleration, axis=0)
+                result[1, :] = np.mean(pairwise_acceleration, axis=2).transpose(1, 0)
                 return result
             return higher_order_cucker_smale_function
         self.model_factory = higher_order_cucker_smale_function_factory

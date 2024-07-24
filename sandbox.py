@@ -7,29 +7,27 @@ from presentation import Presenter
 
 if __name__ == "__main__":
     NUMBER_OF_DIMENSIONS = 2
-    NUMBER_OF_PARTICLES = 5
+    NUMBER_OF_PARTICLES = 10
     NUMBER_OF_STEPS = 1000
 
     initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
-    initial_condition[0:] = (np.random.normal(160, 20, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+    initial_condition[0:] = (np.random.normal(100, 100, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
                              .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
     initial_condition[1:] = (np.random.normal(5, 5, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
                              .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
-
-    state_checker = np.array([[[100*i + 10*j + k for k in range(2)] for j in range(7)] for i in range(2)])
 
     BOUNDS = ((0, 0), (600, 600))
 
     standard_model = (
         OdeModelBuilder()
-        .with_default_phi_function(10, 1)
+        .with_default_phi_function(5, 2)
         .with_default_distance_function()
         .with_standard_cucker_smale_model()
         .build_for_time_step(0.05))
 
     higher_order_interactions_model = (
         OdeModelBuilder()
-        .with_default_phi_function(10, 4)
+        .with_default_phi_function(5, 2)
         .with_default_distance_function()
         .with_higher_order_cucker_smale_model(3)
         .build_for_time_step(0.05))
@@ -50,4 +48,3 @@ if __name__ == "__main__":
 
     plotter = Plotter(trajectories, ".\\plots\\simulation_1")
     plotter.plot()
-
