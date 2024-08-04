@@ -1,4 +1,3 @@
-import numpy as np
 import pygame
 
 from color_helper import ColorHelper

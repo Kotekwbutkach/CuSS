@@ -7,16 +7,19 @@ from presentation import Presenter
 
 if __name__ == "__main__":
     NUMBER_OF_DIMENSIONS = 2
-    NUMBER_OF_PARTICLES = 10
+    NUMBER_OF_PARTICLES = 5
     NUMBER_OF_STEPS = 1000
 
     initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
-    initial_condition[0:] = (np.random.normal(100, 100, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
+    initial_condition[0:] = (np.random.normal(10, 10, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
                              .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
     initial_condition[1:] = (np.random.normal(5, 5, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
                              .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
 
     BOUNDS = ((0, 0), (600, 600))
+
+    def custom_phi(distances: np.ndarray):
+        return np.ones(distances.shape)
 
     standard_model = (
         OdeModelBuilder()
@@ -29,7 +32,7 @@ if __name__ == "__main__":
         OdeModelBuilder()
         .with_default_phi_function(5, 2)
         .with_default_distance_function()
-        .with_higher_order_cucker_smale_model(3)
+        .with_higher_order_cucker_smale_model(2)
         .build_for_time_step(0.05))
 
     standard_traj = standard_model.calculate_trajectory(
