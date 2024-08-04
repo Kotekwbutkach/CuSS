@@ -10,12 +10,15 @@ class Plotter:
     DISTANCE_FILENAME = 'distance'
 
     filepath: str
+    labels: list[str]
 
     def __init__(
             self,
             trajectories: list[tuple[np.ndarray[float], pygame.Color]],
+            labels: list[str],
             filepath: str):
         self.trajectories = trajectories
+        self.labels = labels
         self.filepath = filepath
 
     def plot(self):
@@ -60,16 +63,16 @@ class Plotter:
             upper_bound_v = max(np.max(max_of_velocity_distances), upper_bound_v)
 
         ax_mean_x.set_ylim((0, upper_bound_x * 1.1))
-        ax_mean_x.legend(["standardowy model", "model 3 rzędu"])
+        ax_mean_x.legend(self.labels)
         ax_mean_x.set_title("Średnia odległość pary cząstek")
         ax_mean_v.set_ylim((0, upper_bound_v * 1.1))
-        ax_mean_v.legend(["standardowy model", "model 3 rzędu"])
+        ax_mean_v.legend(self.labels)
         ax_mean_v.set_title("Średnia różnica prędkości pary cząstek")
         ax_max_x.set_ylim((0, upper_bound_x * 1.1))
-        ax_max_x.legend(["standardowy model", "model 3 rzędu"])
+        ax_max_x.legend(self.labels)
         ax_max_x.set_title("Maksymalna odległość pary cząstek")
         ax_max_v.set_ylim((0, upper_bound_v * 1.1))
-        ax_max_v.legend(["standardowy model", "model 3 rzędu"])
+        ax_max_v.legend(self.labels)
         ax_max_v.set_title("Maksymalna różnica prędkości pary cząstek")
 
         plt.show()

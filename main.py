@@ -41,51 +41,48 @@ if __name__ == "__main__":
     start_button.grid(row=2, column=0)
     window.mainloop()
 
-    print([[float(x.get()) for x in var] for var in normal_distribution_param_string_vars])
+    normal_params = [[[float(index.get()) for index in var] for var in measure_type]
+                     for measure_type in normal_distribution_param_string_vars]
+
+    print(normal_params)
 
     if not should_start:
         sys.exit()
 
-    if __name__ == "__main__":
-        NUMBER_OF_DIMENSIONS = 2
-        NUMBER_OF_PARTICLES = 5
-        NUMBER_OF_STEPS = 10000
+    NUMBER_OF_PARTICLES = int(number_of_particles_str_var.get())
+    NUMBER_OF_STEPS = 1000
 
-        initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
-        initial_condition[0:] = (np.random.normal(100, 100, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
-                                 .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
-        initial_condition[1:] = (np.random.normal(5, 5, NUMBER_OF_DIMENSIONS * NUMBER_OF_PARTICLES)
-                                 .reshape(NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
+    initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, 2))
+    initial_condition[0, :, 0] = (np.random.normal(normal_params[0][0][0], normal_params[1][0][0], NUMBER_OF_PARTICLES))
+    initial_condition[0, :, 1] = (np.random.normal(normal_params[0][0][1], normal_params[1][0][1], NUMBER_OF_PARTICLES))
+    initial_condition[1, :, 0] = (np.random.normal(normal_params[0][1][0], normal_params[1][1][0], NUMBER_OF_PARTICLES))
+    initial_condition[1, :, 1] = (np.random.normal(normal_params[0][1][1], normal_params[1][1][1], NUMBER_OF_PARTICLES))
 
-        BOUNDS = ((0, 0), (600, 600))
+    BOUNDS = ((0, 0), (600, 600))
 
-        standard_model = (
-            OdeModelBuilder()
-            .with_default_phi_function(1, 2)
-            .with_default_distance_function()
-            .with_standard_cucker_smale_model()
-            .build_for_time_step(0.05))
+    models = [
+        OdeModelBuilder()
+        .with_default_phi_function(5, 2)
+        .with_default_distance_function()
+        .with_higher_order_cucker_smale_model(k)
+        .build_for_time_step(0.05)
+        for k in range(1, 3)]
 
-        higher_order_interactions_model = (
-            OdeModelBuilder()
-            .with_default_phi_function(1, 2)
-            .with_default_distance_function()
-            .with_higher_order_cucker_smale_model(2)
-            .build_for_time_step(0.05))
+    trajectories = [model.calculate_trajectory(
+        initial_condition,
+        NUMBER_OF_STEPS) for model in models]
 
-        standard_traj = standard_model.calculate_trajectory(
-            initial_condition,
-            NUMBER_OF_STEPS)
-        higher_order_interactions_traj = higher_order_interactions_model.calculate_trajectory(
-            initial_condition,
-            NUMBER_OF_STEPS)
+    colored_trajectories = list(zip(
+        trajectories,
+        [pygame.Color("red"),
+         pygame.Color("green"),
+         pygame.Color("blue"),
+         pygame.Color("orange")]))
 
-        trajectories = [
-            (standard_traj, pygame.Color("green")),
-            (higher_order_interactions_traj, pygame.Color("purple"))]
+    presenter = Presenter(colored_trajectories)
+    presenter.present()
 
-        presenter = Presenter(trajectories)
-        presenter.present()
-
-        plotter = Plotter(trajectories, ".\\plots\\simulation_1")
-        plotter.plot()
+    plotter = Plotter(colored_trajectories,
+                      ["model standardowy", "model rzędu 2", "model rzędu 3", "model rzędu 4"],
+                      ".\\plots\\simulation_1")
+    plotter.plot()

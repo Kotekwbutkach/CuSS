@@ -1,6 +1,6 @@
 import pygame
 
-from color_helper import ColorHelper
+from util.color_helper import ColorHelper
 from data.aliases import *
 
 

@@ -7,7 +7,7 @@ from presentation import Presenter
 
 if __name__ == "__main__":
     NUMBER_OF_DIMENSIONS = 2
-    NUMBER_OF_PARTICLES = 5
+    NUMBER_OF_PARTICLES = 15
     NUMBER_OF_STEPS = 1000
 
     initial_condition = np.zeros((2, NUMBER_OF_PARTICLES, NUMBER_OF_DIMENSIONS))
@@ -21,33 +21,29 @@ if __name__ == "__main__":
     def custom_phi(distances: np.ndarray):
         return np.ones(distances.shape)
 
-    standard_model = (
+    models = [
         OdeModelBuilder()
-        .with_default_phi_function(5, 2)
+        .with_default_phi_function(1, 2)
         .with_default_distance_function()
-        .with_standard_cucker_smale_model()
-        .build_for_time_step(0.05))
+        .with_higher_order_cucker_smale_model(k)
+        .build_for_time_step(0.05)
+        for k in range(1, 5)]
 
-    higher_order_interactions_model = (
-        OdeModelBuilder()
-        .with_default_phi_function(5, 2)
-        .with_default_distance_function()
-        .with_higher_order_cucker_smale_model(2)
-        .build_for_time_step(0.05))
-
-    standard_traj = standard_model.calculate_trajectory(
+    trajectories = [model.calculate_trajectory(
         initial_condition,
-        NUMBER_OF_STEPS)
-    higher_order_interactions_traj = higher_order_interactions_model.calculate_trajectory(
-        initial_condition,
-        NUMBER_OF_STEPS)
+        NUMBER_OF_STEPS) for model in models]
 
-    trajectories = [
-        (standard_traj, pygame.Color("green")),
-        (higher_order_interactions_traj, pygame.Color("purple"))]
+    colored_trajectories = list(zip(
+        trajectories,
+        [pygame.Color("red"),
+         pygame.Color("green"),
+         pygame.Color("blue"),
+         pygame.Color("orange")]))
 
-    presenter = Presenter(trajectories)
+    presenter = Presenter(colored_trajectories)
     presenter.present()
 
-    plotter = Plotter(trajectories, ".\\plots\\simulation_1")
+    plotter = Plotter(colored_trajectories,
+                      ["model standardowy", "model rzędu 2", "model rzędu 3", "model rzędu 4"],
+                      ".\\plots\\simulation_1")
     plotter.plot()
