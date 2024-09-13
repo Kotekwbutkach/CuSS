@@ -14,68 +14,44 @@ class Plotter:
 
     def __init__(
             self,
-            trajectories: list[tuple[np.ndarray[float], pygame.Color]],
-            labels: list[str],
-            filepath: str):
-        self.trajectories = trajectories
-        self.labels = labels
+            filepath: str,
+            labels: list[str]):
         self.filepath = filepath
+        self.labels = labels
 
-    def plot(self):
-        fig = plt.figure()
-        fig.suptitle("Zestawienie zależności od czasu parametrów analitycznych rozwiązań modeli")
-        (ax_mean_x, ax_mean_v), (ax_max_x, ax_max_v) = fig.subplots(2, 2)
+    def plot_singles(
+            self,
+            colored_results: list[tuple[list[list[np.ndarray]], pygame.Color]],
+            title: str
+    ):
+        fig = plt.figure(figsize=(25.0, 10.0))
+        fig.suptitle(title)
 
-        upper_bound_x, upper_bound_v = 0, 0
+        axes = fig.subplots(2, 4)
+        plot_labels = [[
+            x + " - " + y
+            for y in ["minimalna odległość", "średnia odległość", "maksymalna odległość", "odchylenie standardowe"]]
+            for x in ["Położenie", "Prędkość"]]
+        axes_with_labels = [x for i in range(2) for x in list(zip(axes[i], plot_labels[i]))]
+        for i in range(8):
+            ax, label = axes_with_labels[i]
+            lower_bound = None
+            upper_bound = None
+            for colored_result in colored_results:
+                measures, color = colored_result
+                measure = [x for row in measures for x in row][i]
 
-        for traj, color in self.trajectories:
-            number_of_particles = traj.shape[1]
+                ax.plot(measure, color=tuple(c / 255 for c in color))
 
-            position = traj[0, :]
-            velocity = traj[1, :]
-
-            position_distance = (
-                np.tile(position, (number_of_particles, 1, 1, 1))
-                - np.tile(position, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
-            mean_of_position_distances = np.mean(np.sqrt(np.sum(position_distance ** 2, axis=2)), axis=(0, 1))
-            ax_mean_x.plot(mean_of_position_distances, color=tuple(c/255 for c in color))
-            upper_bound_x = max(np.max(mean_of_position_distances), upper_bound_x)
-
-            velocity_distance = (
-                np.tile(velocity, (number_of_particles, 1, 1, 1))
-                - np.tile(velocity, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
-            mean_of_velocity_distances = np.mean(np.sqrt(np.sum(velocity_distance ** 2, axis=2)), axis=(0, 1))
-            ax_mean_v.plot(mean_of_velocity_distances, color=tuple(c / 255 for c in color))
-            upper_bound_v = max(np.max(mean_of_velocity_distances), upper_bound_v)
-
-            position_distance = (
-                np.tile(position, (number_of_particles, 1, 1, 1))
-                - np.tile(position, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
-            max_of_position_distances = np.max(np.sqrt(np.sum(position_distance ** 2, axis=2)), axis=(0, 1))
-            ax_max_x.plot(max_of_position_distances, color=tuple(c/255 for c in color))
-            upper_bound_x = max(np.max(max_of_position_distances), upper_bound_x)
-
-            velocity_distance = (
-                np.tile(velocity, (number_of_particles, 1, 1, 1))
-                - np.tile(velocity, (number_of_particles, 1, 1, 1)).transpose(1, 0, 2, 3))
-            max_of_velocity_distances = np.max(np.sqrt(np.sum(velocity_distance ** 2, axis=2)), axis=(0, 1))
-            ax_max_v.plot(max_of_velocity_distances, color=tuple(c / 255 for c in color))
-            upper_bound_v = max(np.max(max_of_velocity_distances), upper_bound_v)
-
-        ax_mean_x.set_ylim((0, upper_bound_x * 1.1))
-        ax_mean_x.legend(self.labels)
-        ax_mean_x.set_title("Średnia odległość pary cząstek")
-        ax_mean_v.set_ylim((0, upper_bound_v * 1.1))
-        ax_mean_v.legend(self.labels)
-        ax_mean_v.set_title("Średnia różnica prędkości pary cząstek")
-        ax_max_x.set_ylim((0, upper_bound_x * 1.1))
-        ax_max_x.legend(self.labels)
-        ax_max_x.set_title("Maksymalna odległość pary cząstek")
-        ax_max_v.set_ylim((0, upper_bound_v * 1.1))
-        ax_max_v.legend(self.labels)
-        ax_max_v.set_title("Maksymalna różnica prędkości pary cząstek")
-
+                lower_bound = np.min(measure)/1.1 if lower_bound is None else min(lower_bound, np.min(measure))
+                upper_bound = np.max(measure) if upper_bound is None else max(upper_bound, np.max(measure))
+            margin = (upper_bound - lower_bound) * 0.05
+            ax.set_ylim((lower_bound - margin, upper_bound + margin))
+            ax.set_title(label)
+            ax.legend(self.labels)
+            if not os.path.exists(self.filepath):
+                os.makedirs(self.filepath)
+            plt.savefig(
+                os.path.join(self.filepath, f'{title} - {label}.png'),
+                format='png')
         plt.show()
-        plt.savefig(
-            os.path.join(self.filepath, self.MAXIMUM_PREFIX + self.DISTANCE_FILENAME + '.png'),
-            format='png')
