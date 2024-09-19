@@ -22,15 +22,11 @@ class Plotter:
     def plot_singles(
             self,
             colored_results: list[tuple[list[list[np.ndarray]], pygame.Color]],
-            title: str
+            plot_params: list[tuple[str, bool, str]]
     ):
-        plot_labels = [
-            x + " - " + y
-            for x in ["Położenie", "Prędkość"]
-            for y in ["minimalna odległość", "średnia odległość", "maksymalna odległość", "odchylenie standardowe"]]
-        for i in range(8):
+        for i in range(6):
             fig, ax = plt.subplots()
-            label = plot_labels[i]
+            filename = plot_params[i][2]
             lower_bound = None
             upper_bound = None
             for colored_result in colored_results:
@@ -43,12 +39,8 @@ class Plotter:
                 upper_bound = np.max(measure) if upper_bound is None else max(upper_bound, np.max(measure))
             margin = (upper_bound - lower_bound) * 0.05
             ax.set_ylim((lower_bound - margin, upper_bound + margin))
-            # ax.set_title(label)
             ax.legend(self.labels)
             if not os.path.exists(self.filepath):
                 os.makedirs(self.filepath)
-            plt.savefig(
-                os.path.join(self.filepath, f'{title} - {label}.png'),
-                format='png')
+            plt.savefig(os.path.join(self.filepath, f'{filename}.png'), format='png')
             plt.close()
-            # plt.show()

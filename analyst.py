@@ -18,7 +18,6 @@ class Analyst:
         mean_of_position_distances = (np.mean(particle_position_distance, axis=(0, 1))
                                       * number_of_particles / (number_of_particles - 1))
         max_of_position_distances = np.max(particle_position_distance, axis=(0, 1))
-        std_of_position_distances = np.std(particle_position_distance, axis=(0, 1))
 
         velocity_distance = (
                 np.tile(velocity, (number_of_particles, 1, 1, 1))
@@ -29,18 +28,15 @@ class Analyst:
         mean_of_velocity_distances = (np.mean(particle_velocity_distance, axis=(0, 1))
                                       * number_of_particles / (number_of_particles - 1))
         max_of_velocity_distances = np.max(particle_velocity_distance, axis=(0, 1))
-        std_of_velocity_distances = np.std(particle_velocity_distance, axis=(0, 1))
 
         distance_results = [
             min_of_position_distances,
             mean_of_position_distances,
-            max_of_position_distances,
-            std_of_position_distances]
+            max_of_position_distances]
         velocity_results = [
             min_of_velocity_distances,
             mean_of_velocity_distances,
-            max_of_velocity_distances,
-            std_of_velocity_distances]
+            max_of_velocity_distances]
         return np.array([distance_results, velocity_results])
 
     @staticmethod

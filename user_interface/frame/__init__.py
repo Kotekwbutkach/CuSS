@@ -1,0 +1,4 @@
+from user_interface.frame.base_params_frame import BaseParamsFrame
+from user_interface.frame.normal_params_frame import NormalParamsFrame
+from user_interface.frame.model_params_frame import ModelParamsFrame
+from user_interface.frame.plot_params_frame import PlotParamsFrame

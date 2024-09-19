@@ -58,14 +58,14 @@ class Presenter:
             bounds = [np.min(traj, axis=(1, 3)), np.max(traj, axis=(1, 3))]
             position_boundary_0 = (
                 tuple(
-                    bounds[0][0][j]
+                    bounds[0][0][j] + bounds[0][1][j]
                     if self.position_boundary[0][j] is None
                     or self.position_boundary[0][j] > bounds[0][0][j]
                     else self.position_boundary[0][j]
                     for j in [0, 1]))
             position_boundary_1 = (
                 tuple(
-                    bounds[1][0][j]
+                    bounds[1][0][j] + bounds[1][1][j]
                     if self.position_boundary[1][j] is None
                     or self.position_boundary[1][j] < bounds[1][0][j]
                     else self.position_boundary[1][j]
@@ -79,8 +79,8 @@ class Presenter:
         else:
             half_width = half_height * self.screen_size[0] / self.screen_size[1]
         self.position_boundary = (
-            (int((midpoint[0] - half_width) / self.minor_grid) * self.minor_grid,
-             int((midpoint[1] - half_height) / self.minor_grid) * self.minor_grid),
+            (int((midpoint[0] - half_width) / self.minor_grid - 1) * self.minor_grid,
+             int((midpoint[1] - half_height) / self.minor_grid - 1) * self.minor_grid),
             ((int((midpoint[0] + half_width) / self.minor_grid) + 1) * self.minor_grid,
              (int((midpoint[1] + half_height) / self.minor_grid) + 1) * self.minor_grid))
 
@@ -152,7 +152,7 @@ class Presenter:
             for i in range(traj.shape[1]):
                 pygame.draw.line(
                     self.surface,
-                    ColorHelper.mix(color, pygame.Color("white"), 1, 3),
+                    ColorHelper.mix(color, pygame.Color("white"), 1, 1),
                     self.mtv_translate((traj[0, i, 0, self.step], traj[0, i, 1, self.step])),
                     self.mtv_translate((traj[0, i, 0, self.step] + self.velocity_length * traj[1, i, 0, self.step],
                                         traj[0, i, 1, self.step] + self.velocity_length * traj[1, i, 1, self.step])),
