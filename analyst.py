@@ -50,4 +50,4 @@ class Analyst:
             separate_results.append(Analyst.analyze_single(traj))
         grouped_results = np.array(separate_results)
         average_results = np.mean(grouped_results, axis=0)
-        return [separate_results, average_results]
+        return average_results
