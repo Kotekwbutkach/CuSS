@@ -3,11 +3,11 @@ from user_interface.float_entry import FloatEntry
 
 
 class NormalParamsFrame(tk.Frame):
-    string_vars = list[list[int]]
+    string_vars = list[list[list[float]]]
 
     def __init__(self, master):
         super(NormalParamsFrame, self).__init__(master)
-        self.string_vars = [[tk.StringVar(value=str(i)) for _ in range(4)] for i in range(2)]
+        self.string_vars = [[[tk.StringVar(value=str(i))for _ in range(2)] for _ in range(2)] for i in range(2)]
 
         title_frame = tk.Frame(self, width=390, height=50, borderwidth=2, relief="raised", padx=2)
         x_top_frame = tk.Frame(self, width=140, height=30, borderwidth=2, relief="raised", padx=2)
@@ -20,21 +20,21 @@ class NormalParamsFrame(tk.Frame):
         title_label = tk.Label(self, text="Normal distribution parameters", font="Arial 14")
 
         x_label = tk.Label(self, text="x", font="Arial 12")
-        y_label = tk.Label(self, text="y", font="Arial 12")
+        y_label = tk.Label(self, text="v", font="Arial 12")
         x1_label = tk.Label(self, text="x1", font="Arial 9")
         x2_label = tk.Label(self, text="x2", font="Arial 9")
-        y1_label = tk.Label(self, text="y1", font="Arial 9")
-        y2_label = tk.Label(self, text="y2", font="Arial 9")
+        y1_label = tk.Label(self, text="v1", font="Arial 9")
+        y2_label = tk.Label(self, text="v2", font="Arial 9")
         mean_label = tk.Label(self, text="Mean:")
         std_dev_label = tk.Label(self, text="Std dev:")
-        mean_x1_entry = FloatEntry(self, textvariable=self.string_vars[0][0], width=8)
-        mean_x2_entry = FloatEntry(self, textvariable=self.string_vars[0][1], width=8)
-        mean_v1_entry = FloatEntry(self, textvariable=self.string_vars[0][2], width=8)
-        mean_v2_entry = FloatEntry(self, textvariable=self.string_vars[0][3], width=8)
-        std_dev_x1_entry = FloatEntry(self, textvariable=self.string_vars[1][0], width=8)
-        std_dev_x2_entry = FloatEntry(self, textvariable=self.string_vars[1][1], width=8)
-        std_dev_v1_entry = FloatEntry(self, textvariable=self.string_vars[1][2], width=8)
-        std_dev_v2_entry = FloatEntry(self, textvariable=self.string_vars[1][3], width=8)
+        mean_x1_entry = FloatEntry(self, textvariable=self.string_vars[0][0][0], width=8)
+        mean_x2_entry = FloatEntry(self, textvariable=self.string_vars[0][0][1], width=8)
+        mean_v1_entry = FloatEntry(self, textvariable=self.string_vars[0][1][0], width=8)
+        mean_v2_entry = FloatEntry(self, textvariable=self.string_vars[0][1][1], width=8)
+        std_dev_x1_entry = FloatEntry(self, textvariable=self.string_vars[1][0][0], width=8)
+        std_dev_x2_entry = FloatEntry(self, textvariable=self.string_vars[1][0][1], width=8)
+        std_dev_v1_entry = FloatEntry(self, textvariable=self.string_vars[1][1][0], width=8)
+        std_dev_v2_entry = FloatEntry(self, textvariable=self.string_vars[1][1][1], width=8)
 
         title_frame.grid(row=0, column=0, columnspan=5, pady=2, sticky="N")
         x_top_frame.grid(row=1, column=1, columnspan=2, pady=2, sticky="S")

@@ -1,64 +1,54 @@
 import os
 
 import numpy as np
-
-from data import ParticlesSystem
+import pygame
 from matplotlib import pyplot as plt
 
 
 class Plotter:
-    POSITION_FILENAME = 'position'
-    VELOCITY_FILENAME = 'velocity'
-    ACCELERATION_FILENAME = 'acceleration'
-    STD_DEV_FILENAME_PREFIX = 'stddev_'
-    VALUES_FILENAME_PREFIX = 'values_'
+    MAXIMUM_PREFIX = 'max_'
+    DISTANCE_FILENAME = 'distance'
 
-    _filepath: str
-    _time_range: range
-    _data: np.ndarray
-    _std_dev_data: np.ndarray
+    filepath: str
+    labels: list[str]
 
-    def __init__(self, particles_system: ParticlesSystem, filepath: str):
-        self._filepath = filepath
-        self._time_range = range(particles_system.step_limit)
-        data = particles_system.particle_data()
-        sup_norm_data = np.array([
-            data[:, 1:, 0:2].max(axis=2),
-            data[:, 1:, 2:4].max(axis=2),
-            data[:, 1:, 4:6].max(axis=2)])
-        self._data = sup_norm_data
-        self._std_dev_data = sup_norm_data.std(axis=1)
+    def __init__(
+            self,
+            filepath: str,
+            labels: list[str]):
+        self.filepath = filepath
+        self.labels = labels
 
-    def _prepare_dir(self):
-        if not os.path.exists(self._filepath):
-            os.makedirs(self._filepath)
+    def plot_singles(
+            self,
+            colored_results: list[tuple[list[list[np.ndarray]], pygame.Color]],
+            title: str
+    ):
+        plot_labels = [
+            x + " - " + y
+            for x in ["Położenie", "Prędkość"]
+            for y in ["minimalna odległość", "średnia odległość", "maksymalna odległość", "odchylenie standardowe"]]
+        for i in range(8):
+            fig, ax = plt.subplots()
+            label = plot_labels[i]
+            lower_bound = None
+            upper_bound = None
+            for colored_result in colored_results:
+                measures, color = colored_result
+                measure = [x for row in measures for x in row][i]
 
-    def plot_values(self):
-        self._prepare_dir()
-        plt.plot(self._time_range, self._data[0, :, :].transpose())
-        plt.savefig(os.path.join(self._filepath, self.VALUES_FILENAME_PREFIX + self.POSITION_FILENAME + '.png'), format='png')
-        plt.show()
-        plt.plot(self._time_range, self._data[1, :, :].transpose())
-        plt.savefig(os.path.join(self._filepath, self.VALUES_FILENAME_PREFIX + self.VELOCITY_FILENAME + '.png'), format='png')
-        plt.show()
-        plt.plot(self._time_range, self._data[2, :, :].transpose())
-        plt.savefig(os.path.join(self._filepath, self.VALUES_FILENAME_PREFIX + self.ACCELERATION_FILENAME + '.png'), format='png')
-        plt.show()
+                ax.plot(measure, color=tuple(c / 255 for c in color))
 
-    def plot_std_dev(self):
-        self._prepare_dir()
-        plt.plot(self._time_range, self._std_dev_data[0, :].transpose())
-        plt.savefig(
-            os.path.join(self._filepath, self.STD_DEV_FILENAME_PREFIX + self.POSITION_FILENAME + '.png'),
-            format='png')
-        plt.show()
-        plt.plot(self._time_range, self._std_dev_data[1, :].transpose())
-        plt.savefig(
-            os.path.join(self._filepath, self.STD_DEV_FILENAME_PREFIX + self.VELOCITY_FILENAME + '.png'),
-            format='png')
-        plt.show()
-        plt.plot(self._time_range, self._std_dev_data[2, :].transpose())
-        plt.savefig(
-            os.path.join(self._filepath, self.STD_DEV_FILENAME_PREFIX + self.ACCELERATION_FILENAME + '.png'),
-            format='png')
-        plt.show()
+                lower_bound = np.min(measure)/1.1 if lower_bound is None else min(lower_bound, np.min(measure))
+                upper_bound = np.max(measure) if upper_bound is None else max(upper_bound, np.max(measure))
+            margin = (upper_bound - lower_bound) * 0.05
+            ax.set_ylim((lower_bound - margin, upper_bound + margin))
+            # ax.set_title(label)
+            ax.legend(self.labels)
+            if not os.path.exists(self.filepath):
+                os.makedirs(self.filepath)
+            plt.savefig(
+                os.path.join(self.filepath, f'{title} - {label}.png'),
+                format='png')
+            plt.close()
+            # plt.show()

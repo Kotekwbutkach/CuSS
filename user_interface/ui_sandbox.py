@@ -5,7 +5,7 @@ import numpy as np
 from calculation import ParticlesSystemCalculator
 from data import ParticlesSystem
 from models import CuckerSmaleModel, HigherOrderCuckerSmaleModel
-from presentation import Presenter
+from old.presentation import Presenter
 
 window = tk.Tk()
 window.title("CoDyS - parameters")
